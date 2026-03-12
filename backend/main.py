@@ -57,6 +57,10 @@ def load_model():
 
 # Initialize model
 model_loaded = load_model()
+if model_loaded:
+    print(f"Server initialized with classes: {class_names}")
+else:
+    print("WARNING: Server initialized in MOCK MODE")
 
 # Preprocessing transform
 transform = transforms.Compose([
