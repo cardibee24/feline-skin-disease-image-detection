@@ -11,6 +11,8 @@ def train_model(data_dir='dataset', num_epochs=10, batch_size=32, learning_rate=
         'train': transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(15),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -101,7 +103,7 @@ def train_model(data_dir='dataset', num_epochs=10, batch_size=32, learning_rate=
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
-            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}', flush=True)
 
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
