@@ -5,6 +5,7 @@ const ImageUpload = ({ onUpload, isLoading }) => {
     const [preview, setPreview] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const [isCameraMode, setIsCameraMode] = useState(false);
+
     const inputRef = useRef(null);
 
     const handleDrag = (e) => {
@@ -70,8 +71,9 @@ const ImageUpload = ({ onUpload, isLoading }) => {
 
     return (
         <div className="upload-container w-full">
+
             <div
-                className={`upload-area glass-card ${dragActive ? 'drag-active' : ''}`}
+                className="upload-area glass-card"
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -84,39 +86,45 @@ const ImageUpload = ({ onUpload, isLoading }) => {
                     justifyContent: 'center',
                     borderStyle: 'dashed',
                     borderWidth: '2px',
-                    borderColor: dragActive ? 'var(--accent-color)' : 'var(--glass-border)',
-                    transition: 'all 0.3s ease',
-                    position: 'relative'
+                    borderColor: dragActive ? 'var(--primary-color)' : 'var(--glass-border)',
+                    background: dragActive ? 'rgba(103,114,81,0.12)' : 'var(--glass-bg)',
+                    transform: dragActive ? 'scale(1.02)' : 'scale(1)',
+                    boxShadow: dragActive
+                        ? '0 0 0 4px rgba(103,114,81,0.25), 0 8px 32px rgba(103,114,81,0.2)'
+                        : '0 8px 32px 0 rgba(103,114,81,0.15)',
+                    transition: 'all 0.25s ease',
+                    position: 'relative',
                 }}
             >
                 <input
                     ref={inputRef}
                     type="file"
-                    className="file-input"
                     onChange={handleChange}
                     accept="image/*"
                     style={{ display: 'none' }}
                 />
 
                 {preview ? (
-                    <div className="preview-container" style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', justifyContent: 'center' }}>
-                        <img
-                            src={preview}
-                            alt="Preview"
-                            style={{
-                                maxWidth: '100%',
-                                maxHeight: '300px',
-                                borderRadius: '12px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                            }}
-                            onClick={onButtonClick}
-                            className="cursor-pointer"
-                        />
+                    <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <img
+                                src={preview}
+                                alt="Preview"
+                                style={{
+                                    maxWidth: '100%',
+                                    maxHeight: '260px',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                    display: 'block',
+                                }}
+                            />
+                        </div>
                         <button
-                            className="btn btn-secondary"
+                            className="btn"
                             style={{
                                 position: 'absolute',
                                 bottom: '-50px',
+                                background: '#4a5240',
                             }}
                             onClick={() => {
                                 setPreview(null);
@@ -127,16 +135,23 @@ const ImageUpload = ({ onUpload, isLoading }) => {
                         </button>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--primary-color)', marginBottom: '1rem', transition: 'transform 0.2s' }}>
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Upload Feline Image</h3>
-                        <p style={{ color: 'var(--text-muted)' }}>Drag & drop or <span onClick={onButtonClick} className="text-[var(--primary-color)] cursor-pointer hover:underline">browse</span></p>
+                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+                            {dragActive ? 'Drop it!' : 'Upload Feline Image'}
+                        </h3>
+                        <p style={{ color: 'var(--text-muted)' }}>
+                            {dragActive
+                                ? 'Release to upload'
+                                : <>Drag & drop or <span onClick={onButtonClick} style={{ color: 'var(--primary-color)', cursor: 'pointer', textDecoration: 'underline' }}>browse</span></>
+                            }
+                        </p>
 
-                        <div className="divider my-4 w-1/2" style={{ borderBottom: '1px solid var(--glass-border)' }}></div>
+                        <div style={{ borderBottom: '1px solid var(--glass-border)', width: '50%', margin: '1rem 0' }}></div>
 
                         <button
                             className="btn"
@@ -156,4 +171,3 @@ const ImageUpload = ({ onUpload, isLoading }) => {
 };
 
 export default ImageUpload;
-

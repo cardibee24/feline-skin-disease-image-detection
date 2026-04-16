@@ -1,18 +1,34 @@
 :root {
-    --primary-color: #6366f1;
-    --secondary-color: #a855f7;
-    --accent-color: #ec4899;
-    --background-start: #0f172a;
-    --background-end: #1e293b;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
+    --primary-color: #677251;
+    --secondary-color: #839d7b;
+    --accent-color: #a1907c;
+    --background-start: #efeac6;
+    --background-end: #ceb99d;
+    --glass-bg: rgba(255, 255, 255, 0.35);
+    --glass-border: rgba(103, 114, 81, 0.25);
+    --text-main: #2d2a1e;
+    --text-muted: #677251;
+    --success: #677251;
+    --warning: #a1907c;
+    --error: #8b4a3c;
 
     --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Dark mode theme */
+[data-theme="dark"] {
+    --primary-color: #a3b899;
+    --secondary-color: #839d7b;
+    --accent-color: #ceb99d;
+    --background-start: #1c2118;
+    --background-end: #2a3324;
+    --glass-bg: rgba(0, 0, 0, 0.25);
+    --glass-border: rgba(131, 157, 123, 0.2);
+    --text-main: #efeac6;
+    --text-muted: #a1907c;
+    --success: #a3b899;
+    --warning: #ceb99d;
+    --error: #c47a6a;
 }
 
 * {
@@ -32,8 +48,10 @@ body {
 
 #root {
     min-height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .app-container {
@@ -57,7 +75,7 @@ header {
 h1 {
     font-size: 3rem;
     font-weight: 800;
-    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -78,7 +96,7 @@ h1 {
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     padding: 2rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    box-shadow: 0 8px 32px 0 rgba(103, 114, 81, 0.15);
     width: 100%;
     max-width: 600px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -87,7 +105,7 @@ h1 {
 /* Buttons */
 .btn {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
+    color: #fff;
     border: none;
     padding: 0.8rem 1.5rem;
     border-radius: 12px;
@@ -95,12 +113,12 @@ h1 {
     cursor: pointer;
     transition: all 0.2s;
     font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 12px rgba(103, 114, 81, 0.3);
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 6px 16px rgba(103, 114, 81, 0.4);
 }
 
 .btn:disabled {
@@ -138,19 +156,18 @@ h1 {
     animation: fadeInUp 0.6s ease-out forwards;
 }
 
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
 /* Utilities */
-.text-center {
-    text-align: center;
-}
-
-.mt-4 {
-    margin-top: 1rem;
-}
-
-.mb-4 {
-    margin-bottom: 1rem;
-}
-
 .flex-center {
     display: flex;
     justify-content: center;

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ImageUpload from './components/ImageUpload';
 import PredictionResult from './components/PredictionResult';
+import ScanHistory from './components/ScanHistory';
+import AboutModal from './components/AboutModal';
 
-// Base URL for API - change if deployed elsewhere
 const API_URL = 'http://localhost:8000';
 
 function App() {
@@ -11,6 +12,15 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   const handleUpload = (selectedFile, previewData) => {
     setFile(selectedFile);
@@ -21,7 +31,6 @@ function App() {
 
   const analyzeImage = async () => {
     if (!file) return;
-
     setLoading(true);
     setError(null);
 
@@ -40,6 +49,19 @@ function App() {
 
       const data = await response.json();
       setResult(data);
+
+      // Add to history
+      const now = new Date();
+      const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+        ' · ' + now.toLocaleDateString([], { day: 'numeric', month: 'short' });
+
+      setHistory(prev => [{
+        prediction: data.prediction,
+        confidence: data.confidence,
+        preview: preview,
+        timestamp,
+      }, ...prev]);
+
     } catch (err) {
       console.error(err);
       setError(err.message || 'An error occurred during analysis.');
@@ -57,8 +79,34 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Theme toggle */}
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        style={{
+          position: 'fixed',
+          top: '1.2rem',
+          right: '1.5rem',
+          background: 'var(--glass-bg)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: '50%',
+          width: '42px',
+          height: '42px',
+          fontSize: '1.2rem',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          transition: 'all 0.2s ease',
+          zIndex: 100,
+        }}
+      >
+        {darkMode ? '☀️' : '🌙'}
+      </button>
+
       <header>
-        <h1>Feline Skin Guard</h1>
+        <h1>🐾 Feline Skin Guard</h1>
         <p className="subtitle">AI-Powered Skin Disease Detection</p>
       </header>
 
@@ -68,12 +116,12 @@ function App() {
             <ImageUpload onUpload={handleUpload} isLoading={loading} />
 
             {file && (
-              <div className="mt-4 text-center">
+              <div style={{ marginTop: '1.5rem' }}>
                 <button
                   className="btn"
                   onClick={analyzeImage}
                   disabled={loading}
-                  style={{ width: '100%', marginTop: '1rem' }}
+                  style={{ width: '100%' }}
                 >
                   {loading ? 'Analyzing...' : 'Analyze Image'}
                 </button>
@@ -81,7 +129,7 @@ function App() {
             )}
 
             {error && (
-              <div className="mt-4" style={{ color: 'var(--error)', textAlign: 'center' }}>
+              <div style={{ color: 'var(--error)', textAlign: 'center', marginTop: '1rem' }}>
                 {error}
               </div>
             )}
@@ -91,10 +139,17 @@ function App() {
         {result && (
           <PredictionResult result={result} onReset={resetApp} />
         )}
+
+        {/* Scan history shown below result or upload card */}
+        <ScanHistory
+          history={history}
+          onClear={() => setHistory([])}
+        />
+        <AboutModal />
       </main>
 
-      <footer style={{ marginTop: 'auto', paddingTop: '2rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-        <p>© 2026 Feline Skin Guard Project</p>
+      <footer style={{ marginTop: 'auto', paddingTop: '2rem', paddingBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center' }}>
+        <p>© 22ACB05340_AU_YING_SEE</p>
       </footer>
     </div>
   );

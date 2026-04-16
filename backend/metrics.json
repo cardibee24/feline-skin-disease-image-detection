@@ -1,0 +1,35 @@
+{
+  "overall_accuracy": 0.9411,
+  "macro_precision": 0.9406,
+  "macro_recall": 0.9409,
+  "macro_f1": 0.9406,
+  "per_class": {
+    "flea": {
+      "precision": 0.9475,
+      "recall": 0.9192,
+      "f1_score": 0.9331,
+      "support": 334
+    },
+    "healthy": {
+      "precision": 0.9453,
+      "recall": 0.9749,
+      "f1_score": 0.9599,
+      "support": 319
+    },
+    "ringworm": {
+      "precision": 0.9029,
+      "recall": 0.9,
+      "f1_score": 0.9015,
+      "support": 310
+    },
+    "scabies": {
+      "precision": 0.9666,
+      "recall": 0.9695,
+      "f1_score": 0.968,
+      "support": 328
+    }
+  },
+  "model": "ResNet18",
+  "epochs": 10,
+  "dataset_split": "80% Train / 20% Validation"
+}
