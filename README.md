@@ -1,67 +1,187 @@
-# Feline Skin Disease Image Detection App
+# 🐾 Feline Skin Guard
 
-This application uses **React (Vite)** for the frontend and **FastAPI** for the backend to detect feline skin diseases from images.
+**Deep Learning for Feline Disease Detection**
+A Final Year Project by Au Ying See (22ACB05340) — UTAR
+
+An AI-powered web application that detects feline skin diseases from images using deep learning, with explainable AI visualization via Grad-CAM.
+
+---
+
+## Features
+
+- **4-class skin disease classification** — Scabies, Ringworm, Flea, Healthy
+- **CLAHE preprocessing** — Contrast Limited Adaptive Histogram Equalisation applied before inference
+- **Grad-CAM heatmap** — Visual explanation of which skin region influenced the prediction
+- **All class probabilities** — Ranked confidence bars for all 4 diseases
+- **Confidence warning** — Flags low confidence results (<70%)
+- **Disease info & advice** — Description and suggested action per detected condition
+- **Scan history** — Session log of all previous scans with thumbnails
+- **Dark / Light mode** — Persistent theme toggle
+- **About modal** — Model info, dataset details, preprocessing, and live performance metrics
+
+---
+
+## Model
+
+| Detail | Value |
+|---|---|
+| Architecture | ResNet18 (Transfer Learning) |
+| Pretrained On | ImageNet |
+| Preprocessing | CLAHE + Normalization |
+| Augmentation | Flip, Rotation, Colour Jitter |
+| Explainability | Grad-CAM (layer4) |
+| Overall Accuracy | 94.11% |
+| Macro F1-Score | 94.06% |
+
+---
+
+## Project Structure
+
+```
+feline-skin-disease-image-detection/
+├── backend/
+│   ├── main.py              # FastAPI server + inference + Grad-CAM
+│   ├── train.py             # Model training script
+│   ├── evaluate.py          # Evaluation script (generates metrics.json)
+│   ├── prepare_dataset.py   # Train/val split from raw_data/
+│   ├── requirements.txt
+│   ├── model.pth            # Trained model weights (not in repo)
+│   ├── class_names.txt      # Class labels (not in repo)
+│   └── metrics.json         # Evaluation metrics (not in repo)
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/
+│   │   │   ├── ImageUpload.jsx
+│   │   │   ├── PredictionResult.jsx
+│   │   │   ├── ScanHistory.jsx
+│   │   │   ├── AboutModal.jsx
+│   │   │   └── CameraCapture.jsx
+│   │   └── styles/
+│   │       └── index.css
+│   └── index.html
+└── README.md
+```
+
+---
 
 ## Prerequisites
 
-1.  **Node.js**: [Download & Install](https://nodejs.org/)
-2.  **Python** (3.8+): [Download & Install](https://www.python.org/)
-    - **Important**: During installation, check "Add Python to PATH".
+- **Node.js** — [Download](https://nodejs.org/)
+- **Python 3.8+** — [Download](https://www.python.org/) *(check "Add Python to PATH")*
+
+---
 
 ## Setup & Run
 
-### 1. Backend (API & Model)
+### 1. Backend
 
-The backend handles image processing and ML inference.
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-1.  Open a terminal in the `backend` folder:
-    ```bash
-    cd backend
-    ```
-2.  Create a virtual environment (optional but recommended):
-    ```bash
-    python -m venv venv
-    .\venv\Scripts\Activate
-    ```
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Training (Optional)**:
-    - Place your images in `backend/dataset/train/<disease_name>` and `backend/dataset/val/<disease_name>`.
-    - Run the training script:
-      ```bash
-      python train.py
-      ```
-    - This will generate `model.pth`.
-5.  **Start the Server**:
-    ```bash
-    python main.py
-    ```
-    - The API will run at `http://localhost:8000`.
+**Prepare dataset** (place raw images in `raw_data/<class>/` first):
+```bash
+python prepare_dataset.py --source raw_data --output dataset
+```
 
-### 2. Frontend (User Interface)
+**Train the model:**
+```bash
+python train.py
+```
 
-The frontend allows you to upload images and view results.
+**Generate evaluation metrics:**
+```bash
+python evaluate.py
+```
 
-1.  Open a new terminal in the `frontend` folder:
-    ```bash
-    cd frontend
-    ```
-2.  Install dependencies (if not already done):
-    ```bash
-    npm install
-    ```
-3.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-4.  Open your browser at `http://localhost:5173`.
+**Start the server:**
+```bash
+python main.py
+```
+API runs at `http://localhost:8000`
+
+---
+
+### 2. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open `http://localhost:5173`
+
+---
+
+## Quick Start (Every Time)
+
+Follow these steps in order each time you want to run the app:
+
+**Terminal 1 — Backend:**
+```bash
+cd backend
+python main.py
+```
+Wait until you see `Application startup complete.` before moving on.
+
+**Terminal 2 — Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+Then open `http://localhost:5173` in your browser.
+
+---
+
+## First Time Only (After Cloning)
+
+Run these once to set up and train the model:
+
+```bash
+# 1. Install backend dependencies
+cd backend
+pip install -r requirements.txt
+
+# 2. Prepare dataset (raw images must be in raw_data/<class>/)
+python prepare_dataset.py --source raw_data --output dataset
+
+# 3. Train the model — generates model.pth
+python train.py
+
+# 4. Generate performance metrics — generates metrics.json
+python evaluate.py
+
+# 5. Start the backend
+python main.py
+```
+
+```bash
+# 6. In a new terminal — install and start frontend
+cd frontend
+npm install
+npm run dev
+```
+
+---
 
 ## Usage
 
-1.  Ensure the **Backend** is running.
-2.  Go to the **Frontend** URL.
-3.  Upload a cat image.
-4.  View the prediction result!
-    - **Note**: If you haven't trained a model, the app will use a **Mock Model** which returns random results for demonstration.
+1. Make sure the backend is running
+2. Upload a cat skin image or take a photo
+3. Click **Analyze Image**
+4. View the predicted disease, confidence, Grad-CAM heatmap, and advice
+5. Open **History** (left tab) to see all previous scans
+6. Open **About** (left tab) to see model details and performance metrics
+
+---
+
+## Dataset Classes
+
+| Class | Description |
+|---|---|
+| Scabies | Mite infestation causing intense itching and crusty sores |
+| Ringworm | Fungal infection causing circular patches of hair loss |
+| Flea | Flea infestation causing scratching and red bumps |
+| Healthy | No signs of skin disease |

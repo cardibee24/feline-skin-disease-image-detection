@@ -133,4 +133,4 @@ if __name__ == '__main__':
         print("Error: dataset/train or dataset/val not found.")
         print("Please create them and add class folders (e.g., dataset/train/cat_ringworm).")
     else:
-        train_model()
+        train_model(num_epochs=25)

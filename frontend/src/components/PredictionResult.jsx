@@ -34,7 +34,8 @@ const PredictionResult = ({ result, onReset }) => {
     if (!result) return null;
     const { prediction, confidence, all_probabilities, gradcam_image, mode } = result;
     const percentage = (confidence * 100).toFixed(1);
-    const isLowConfidence = confidence < 0.7;
+    const isUnclear = confidence < 0.5;
+    const isLowConfidence = confidence >= 0.5 && confidence < 0.7;
 
     const info = DISEASE_INFO[prediction?.toLowerCase()] || {
         icon: '🔍',
@@ -42,6 +43,39 @@ const PredictionResult = ({ result, onReset }) => {
         action: 'Please consult a veterinarian for a professional diagnosis.',
         severity: 'medium',
     };
+
+    // Reject unclear predictions
+    if (isUnclear) {
+        return (
+            <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔎</div>
+                <h2 style={{ marginBottom: '0.75rem', color: 'var(--text-main)' }}>Unable to Determine</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.7', marginBottom: '1.5rem' }}>
+                    The model confidence is too low ({percentage}%) to make a reliable prediction.
+                    This may be due to image quality, lighting, or an unclear skin condition.
+                </p>
+                <div style={{
+                    background: 'rgba(139,74,60,0.08)',
+                    border: '1px solid rgba(139,74,60,0.3)',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    gap: '0.6rem',
+                    alignItems: 'flex-start',
+                    textAlign: 'left',
+                }}>
+                    <span style={{ fontSize: '1.1rem' }}>💡</span>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: '1.6' }}>
+                        Please retake the photo with better lighting and ensure the affected skin area is clearly visible. Always consult a veterinarian for a proper diagnosis.
+                    </p>
+                </div>
+                <button onClick={onReset} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', width: '100%' }}>
+                    Try Another Image
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center' }}>
