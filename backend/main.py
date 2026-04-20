@@ -26,34 +26,81 @@ app.add_middleware(
 
 # Global variables for model
 model = None
+model_arch = None
 class_names = []
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+MODEL_FILES = {
+    'resnet18':    'resnet18.pth',
+    'resnet50':    'resnet50.pth',
+    'mobilenetv2': 'mobilenetv2.pth',
+}
+
+def build_model(arch, num_classes):
+    if arch == 'resnet18':
+        m = models.resnet18(pretrained=False)
+        m.fc = nn.Linear(m.fc.in_features, num_classes)
+    elif arch == 'resnet50':
+        m = models.resnet50(pretrained=False)
+        m.fc = nn.Linear(m.fc.in_features, num_classes)
+    elif arch == 'mobilenetv2':
+        m = models.mobilenet_v2(pretrained=False)
+        m.classifier[1] = nn.Linear(m.last_channel, num_classes)
+    else:
+        raise ValueError(f"Unknown architecture: {arch}")
+    return m
+
+def get_target_layer(arch):
+    """Return the last conv layer for Grad-CAM per architecture."""
+    if arch in ('resnet18', 'resnet50'):
+        return model.layer4[-1]
+    elif arch == 'mobilenetv2':
+        return model.features[-1]
+    return None
+
+def pick_best_model():
+    """Read metrics.json to find the best model, fallback to first available .pth."""
+    if os.path.exists('metrics.json'):
+        try:
+            with open('metrics.json', 'r') as f:
+                data = json.load(f)
+            best = data.get('best_model')
+            if best and os.path.exists(MODEL_FILES.get(best, '')):
+                return best, MODEL_FILES[best]
+        except Exception:
+            pass
+
+    # Fallback: use first available
+    for arch, path in MODEL_FILES.items():
+        if os.path.exists(path):
+            return arch, path
+
+    return None, None
+
 def load_model():
-    global model, class_names
-    model_path = "model.pth"
+    global model, model_arch, class_names
     class_names_path = "class_names.txt"
 
-    if os.path.exists(model_path) and os.path.exists(class_names_path):
+    arch, model_path = pick_best_model()
+
+    if arch and model_path and os.path.exists(class_names_path):
         try:
-            print(f"Loading model from {model_path}...")
+            print(f"Loading {arch.upper()} from {model_path}...")
             with open(class_names_path, 'r') as f:
                 class_names = [line.strip() for line in f.readlines()]
 
-            model = models.resnet18(pretrained=False)
-            num_ftrs = model.fc.in_features
-            model.fc = nn.Linear(num_ftrs, len(class_names))
-
+            model = build_model(arch, len(class_names))
             model.load_state_dict(torch.load(model_path, map_location=device))
             model.to(device)
             model.eval()
-            print("Model loaded successfully.")
+            model_arch = arch
+            print(f"Model loaded successfully: {arch.upper()}")
             return True
         except Exception as e:
             print(f"Failed to load model: {e}")
             return False
     else:
-        print("Model file not found. Using Mock Model.")
+        print("No model file found. Using Mock Model.")
         return False
 
 # Initialize model
@@ -75,7 +122,7 @@ def apply_clahe(pil_image):
     return Image.fromarray(enhanced)
 
 def compute_gradcam(input_tensor, target_class_idx):
-    """Compute Grad-CAM heatmap for the target class using ResNet18's last conv layer."""
+    """Compute Grad-CAM heatmap for the target class using the last conv layer."""
     activations = {}
     gradients = {}
 
@@ -85,8 +132,9 @@ def compute_gradcam(input_tensor, target_class_idx):
     def backward_hook(module, grad_input, grad_output):
         gradients['value'] = grad_output[0]
 
-    # Hook into the last conv layer of ResNet18 (layer4[-1])
-    target_layer = model.layer4[-1]
+    target_layer = get_target_layer(model_arch)
+    if target_layer is None:
+        return None
     fwd_handle = target_layer.register_forward_hook(forward_hook)
     bwd_handle = target_layer.register_full_backward_hook(backward_hook)
 
