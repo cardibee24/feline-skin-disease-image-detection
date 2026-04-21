@@ -1,35 +1,137 @@
 {
-  "overall_accuracy": 0.962,
-  "macro_precision": 0.9618,
-  "macro_recall": 0.9622,
-  "macro_f1": 0.9619,
+  "overall_accuracy": 0.9752,
+  "macro_precision": 0.9752,
+  "macro_recall": 0.9753,
+  "macro_f1": 0.9752,
+  "roc_auc": 0.9987,
   "per_class": {
     "flea": {
-      "precision": 0.9536,
-      "recall": 0.9222,
-      "f1_score": 0.9376,
+      "precision": 0.9725,
+      "recall": 0.9521,
+      "f1_score": 0.9622,
       "support": 334
     },
     "healthy": {
-      "precision": 0.9907,
-      "recall": 1.0,
-      "f1_score": 0.9953,
+      "precision": 0.9937,
+      "recall": 0.9937,
+      "f1_score": 0.9937,
       "support": 319
     },
     "ringworm": {
-      "precision": 0.9122,
-      "recall": 0.9387,
-      "f1_score": 0.9253,
+      "precision": 0.9346,
+      "recall": 0.9677,
+      "f1_score": 0.9509,
       "support": 310
     },
     "scabies": {
-      "precision": 0.9908,
+      "precision": 1.0,
       "recall": 0.9878,
-      "f1_score": 0.9893,
+      "f1_score": 0.9939,
       "support": 328
     }
   },
-  "model": "ResNet18",
-  "epochs": 10,
-  "dataset_split": "80% Train / 20% Validation"
+  "best_model": "resnet50",
+  "epochs": 25,
+  "dataset_split": "80% Train / 20% Validation",
+  "comparison": {
+    "resnet18": {
+      "overall_accuracy": 0.962,
+      "macro_precision": 0.9618,
+      "macro_recall": 0.9622,
+      "macro_f1": 0.9619,
+      "roc_auc": 0.9972,
+      "per_class": {
+        "flea": {
+          "precision": 0.9536,
+          "recall": 0.9222,
+          "f1_score": 0.9376,
+          "support": 334
+        },
+        "healthy": {
+          "precision": 0.9907,
+          "recall": 1.0,
+          "f1_score": 0.9953,
+          "support": 319
+        },
+        "ringworm": {
+          "precision": 0.9122,
+          "recall": 0.9387,
+          "f1_score": 0.9253,
+          "support": 310
+        },
+        "scabies": {
+          "precision": 0.9908,
+          "recall": 0.9878,
+          "f1_score": 0.9893,
+          "support": 328
+        }
+      }
+    },
+    "resnet50": {
+      "overall_accuracy": 0.9752,
+      "macro_precision": 0.9752,
+      "macro_recall": 0.9753,
+      "macro_f1": 0.9752,
+      "roc_auc": 0.9987,
+      "per_class": {
+        "flea": {
+          "precision": 0.9725,
+          "recall": 0.9521,
+          "f1_score": 0.9622,
+          "support": 334
+        },
+        "healthy": {
+          "precision": 0.9937,
+          "recall": 0.9937,
+          "f1_score": 0.9937,
+          "support": 319
+        },
+        "ringworm": {
+          "precision": 0.9346,
+          "recall": 0.9677,
+          "f1_score": 0.9509,
+          "support": 310
+        },
+        "scabies": {
+          "precision": 1.0,
+          "recall": 0.9878,
+          "f1_score": 0.9939,
+          "support": 328
+        }
+      }
+    },
+    "mobilenetv2": {
+      "overall_accuracy": 0.9651,
+      "macro_precision": 0.9649,
+      "macro_recall": 0.965,
+      "macro_f1": 0.9649,
+      "roc_auc": 0.9976,
+      "per_class": {
+        "flea": {
+          "precision": 0.9547,
+          "recall": 0.9461,
+          "f1_score": 0.9504,
+          "support": 334
+        },
+        "healthy": {
+          "precision": 0.9753,
+          "recall": 0.9906,
+          "f1_score": 0.9829,
+          "support": 319
+        },
+        "ringworm": {
+          "precision": 0.9387,
+          "recall": 0.9387,
+          "f1_score": 0.9387,
+          "support": 310
+        },
+        "scabies": {
+          "precision": 0.9908,
+          "recall": 0.9848,
+          "f1_score": 0.9878,
+          "support": 328
+        }
+      }
+    }
+  }
 }
