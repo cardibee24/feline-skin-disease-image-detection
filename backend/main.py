@@ -12,6 +12,8 @@ import torch.nn as nn
 import os
 import json
 import random
+from pytorch_grad_cam import GradCAMPlusPlus
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 
 app = FastAPI()
 
@@ -51,7 +53,6 @@ def build_model(arch, num_classes):
     return m
 
 def get_target_layer(arch):
-    """Return the last conv layer for Grad-CAM per architecture."""
     if arch in ('resnet18', 'resnet50'):
         return model.layer4[-1]
     elif arch == 'mobilenetv2':
@@ -122,52 +123,26 @@ def apply_clahe(pil_image):
     return Image.fromarray(enhanced)
 
 def compute_gradcam(input_tensor, target_class_idx):
-    """Compute Grad-CAM heatmap for the target class using the last conv layer."""
-    activations = {}
-    gradients = {}
-
-    def forward_hook(module, input, output):
-        activations['value'] = output
-
-    def backward_hook(module, grad_input, grad_output):
-        gradients['value'] = grad_output[0]
-
     target_layer = get_target_layer(model_arch)
     if target_layer is None:
         return None
-    fwd_handle = target_layer.register_forward_hook(forward_hook)
-    bwd_handle = target_layer.register_full_backward_hook(backward_hook)
-
-    # Forward pass with gradients enabled
-    model.zero_grad()
-    output = model(input_tensor)
-
-    # Backprop for the target class
-    class_score = output[0, target_class_idx]
-    class_score.backward()
-
-    # Compute weighted activation map
-    grads = gradients['value'][0]        # [C, H, W]
-    acts  = activations['value'][0]      # [C, H, W]
-    weights = grads.mean(dim=(1, 2))     # Global average pool → [C]
-
-    cam = torch.zeros(acts.shape[1:], device=device)
-    for i, w in enumerate(weights):
-        cam += w * acts[i]
-
-    cam = torch.relu(cam)
-    cam = cam.detach().cpu().numpy()
-    if cam.max() > 0:
-        cam = cam / cam.max()
-
-    fwd_handle.remove()
-    bwd_handle.remove()
-
-    return cam
+    with GradCAMPlusPlus(model=model, target_layers=[target_layer]) as cam:
+        targets = [ClassifierOutputTarget(target_class_idx)]
+        grayscale_cam = cam(input_tensor=input_tensor, targets=targets)
+    return grayscale_cam[0]
 
 def overlay_heatmap(pil_image, cam):
-    """Overlay Grad-CAM heatmap onto the original image and return as base64 PNG."""
-    img = np.array(pil_image.resize((224, 224))).astype(np.uint8)
+    """Overlay Grad-CAM heatmap onto the model-input crop and return as base64 PNG."""
+    # Replicate the exact same transform the model saw: Resize(256) then CenterCrop(224)
+    # Using simple resize(224,224) causes spatial misalignment with the heatmap
+    w, h = pil_image.size
+    scale = 256 / min(w, h)
+    rw, rh = int(w * scale), int(h * scale)
+    resized = pil_image.resize((rw, rh), Image.BILINEAR)
+    left = (rw - 224) // 2
+    top  = (rh - 224) // 2
+    cropped = resized.crop((left, top, left + 224, top + 224))
+    img = np.array(cropped).astype(np.uint8)
 
     # Resize CAM to image size and apply jet colormap
     cam_resized = cv2.resize(cam, (224, 224))
