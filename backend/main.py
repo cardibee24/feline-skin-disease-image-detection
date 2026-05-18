@@ -32,9 +32,13 @@ model_arch = None
 class_names = []
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Gate-keeper: ImageNet domestic cat class indices (281–285)
-# 281=tabby, 282=tiger cat (domestic tabby), 283=Persian, 284=Siamese, 285=Egyptian cat
-IMAGENET_CAT_INDICES = set(range(281, 286))
+# Gate-keeper blocklist: reject if top-1 ImageNet class is a wild cat or dog breed
+# with high confidence. Blocklist is used instead of an allowlist because close-up
+# skin/fur photos don't score on domestic cat classes (281-285) — ImageNet sees fur
+# texture, not a recognisable cat face — causing false rejections on the actual dataset.
+# Wild cats: 286-293 (cougar, lynx, leopard, snow leopard, jaguar, lion, tiger, cheetah)
+# Dog breeds: 151-268
+BLOCKED_IMAGENET_INDICES = set(range(151, 269)) | set(range(286, 294))
 gate_model = None
 
 MODEL_FILES = {
@@ -55,13 +59,13 @@ def load_gate_model():
     except Exception as e:
         print(f"Gate-keeper model failed to load: {e}")
 
-def is_feline_image(pil_image, min_cat_prob=0.20):
-    """Return True only if domestic cat classes hold >= min_cat_prob total probability mass.
+def is_feline_image(pil_image, block_threshold=0.50):
+    """Return False only when top-1 ImageNet class is a wild cat or dog with >= block_threshold confidence.
 
-    Checking top-k index membership is too loose: a tiger image leaks 'tabby cat' into
-    the top-5 at ~1-2%, causing a false pass. Summing softmax probability over all domestic
-    cat classes (281-285) and requiring >= 20% rejects wild cats/non-cats while accepting
-    real domestic cat images that typically score 50-90% on those classes.
+    Allowlist approach (require high cat-class probability) fails on close-up skin photos:
+    ImageNet sees fur texture rather than a recognisable cat, so real disease images get
+    incorrectly rejected. Blocklist approach only rejects clear non-feline animals
+    (tiger at 90%, dog at 80%) while accepting ambiguous close-up skin images.
     """
     if gate_model is None:
         return True  # fail open if gate model unavailable
@@ -69,8 +73,9 @@ def is_feline_image(pil_image, min_cat_prob=0.20):
         tensor = transform(pil_image).unsqueeze(0)  # runs on CPU
         out = gate_model(tensor)
         probs = torch.softmax(out, dim=1)[0]
-        cat_prob = sum(probs[idx].item() for idx in IMAGENET_CAT_INDICES)
-    return cat_prob >= min_cat_prob
+    top1_idx = torch.argmax(probs).item()
+    top1_prob = probs[top1_idx].item()
+    return not (top1_idx in BLOCKED_IMAGENET_INDICES and top1_prob >= block_threshold)
 
 def compute_normalized_entropy(probabilities):
     """Entropy normalised to [0, 1]. Values near 1 mean the model is maximally uncertain."""
