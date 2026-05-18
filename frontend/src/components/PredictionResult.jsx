@@ -30,7 +30,7 @@ const DISEASE_INFO = {
 const severityColor = { high: '#8b4a3c', medium: '#a1907c', none: '#677251' };
 const severityBg = { high: 'rgba(139,74,60,0.08)', medium: 'rgba(161,144,124,0.1)', none: 'rgba(103,114,81,0.08)' };
 
-const PredictionResult = ({ result, onReset }) => {
+const PredictionResult = ({ result, onReset, showReset = true, outerStyle = {} }) => {
     if (!result) return null;
     const { prediction, confidence, all_probabilities, gradcam_image, mode, is_ood } = result;
     const percentage = (confidence * 100).toFixed(1);
@@ -47,7 +47,7 @@ const PredictionResult = ({ result, onReset }) => {
     // Reject unclear predictions
     if (isUnclear) {
         return (
-            <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center' }}>
+            <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center', ...outerStyle }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔎</div>
                 <h2 style={{ marginBottom: '0.75rem', color: 'var(--text-main)' }}>Unable to Determine</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.7', marginBottom: '1.5rem' }}>
@@ -70,15 +70,17 @@ const PredictionResult = ({ result, onReset }) => {
                         Please retake the photo with better lighting and ensure the affected skin area is clearly visible. Always consult a veterinarian for a proper diagnosis.
                     </p>
                 </div>
-                <button onClick={onReset} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', width: '100%' }}>
-                    Try Another Image
-                </button>
+                {showReset && (
+                    <button onClick={onReset} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', width: '100%' }}>
+                        Try Another Image
+                    </button>
+                )}
             </div>
         );
     }
 
     return (
-        <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center', ...outerStyle }}>
             <h2 style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>Analysis Result</h2>
 
             {/* OOD warning — model maximally uncertain across all disease classes */}
@@ -200,9 +202,11 @@ const PredictionResult = ({ result, onReset }) => {
                 This tool is for informational purposes only. Always consult a veterinarian for a professional diagnosis.
             </p>
 
-            <button onClick={onReset} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', width: '100%' }}>
-                Analyze Another Image
-            </button>
+            {showReset && (
+                <button onClick={onReset} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', width: '100%' }}>
+                    Analyze Another Image
+                </button>
+            )}
         </div>
     );
 };

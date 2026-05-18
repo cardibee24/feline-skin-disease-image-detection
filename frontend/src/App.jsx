@@ -7,12 +7,11 @@ import AboutModal from './components/AboutModal';
 const API_URL = 'http://localhost:8000';
 
 function App() {
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [result, setResult] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [results, setResults] = useState([]); // [{...prediction} | {_error, message}]
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [errorType, setErrorType] = useState(null);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [history, setHistory] = useState([]);
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
@@ -23,67 +22,78 @@ function App() {
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  const handleUpload = (selectedFile, previewData) => {
-    setFile(selectedFile);
-    setPreview(previewData);
-    setResult(null);
-    setError(null);
-    setErrorType(null);
+  const handleUpload = (selectedFiles, previewData) => {
+    setFiles(selectedFiles);
+    setPreviews(previewData);
+    setResults([]);
   };
 
-  const analyzeImage = async () => {
-    if (!file) return;
+  const analyzeImages = async () => {
+    if (!files.length) return;
     setLoading(true);
-    setError(null);
+    setResults([]);
+    setProgress({ current: 0, total: files.length });
 
-    const formData = new FormData();
-    formData.append('file', file);
+    const allResults = [];
 
-    try {
-      const response = await fetch(`${API_URL}/predict`, {
-        method: 'POST',
-        body: formData,
-      });
+    for (let i = 0; i < files.length; i++) {
+      setProgress({ current: i + 1, total: files.length });
+      const formData = new FormData();
+      formData.append('file', files[i]);
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        if (errData?.detail?.error === 'not_feline') {
-          setError(errData.detail.message);
-          setErrorType('not_feline');
-          return;
+      try {
+        const response = await fetch(`${API_URL}/predict`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          if (errData?.detail?.error === 'not_feline') {
+            allResults.push({ _error: 'not_feline', message: errData.detail.message });
+          } else {
+            allResults.push({ _error: 'generic', message: 'Failed to analyze image. Is the backend running?' });
+          }
+        } else {
+          allResults.push(await response.json());
         }
-        throw new Error('Failed to analyze image. Is the backend running?');
+      } catch (err) {
+        allResults.push({ _error: 'generic', message: err.message || 'An error occurred during analysis.' });
       }
-
-      const data = await response.json();
-      setResult(data);
-
-      // Add to history
-      const now = new Date();
-      const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
-        ' · ' + now.toLocaleDateString([], { day: 'numeric', month: 'short' });
-
-      setHistory(prev => [{
-        prediction: data.prediction,
-        confidence: data.confidence,
-        preview: preview,
-        timestamp,
-      }, ...prev]);
-
-    } catch (err) {
-      console.error(err);
-      setError(err.message || 'An error occurred during analysis.');
-    } finally {
-      setLoading(false);
     }
+
+    setResults(allResults);
+    setLoading(false);
+    setProgress({ current: 0, total: 0 });
+
+    const now = new Date();
+    const timestamp =
+      now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+      ' · ' +
+      now.toLocaleDateString([], { day: 'numeric', month: 'short' });
+
+    const historyEntries = allResults
+      .map((r, i) => ({ ...r, _preview: previews[i] }))
+      .filter(r => !r._error)
+      .map(r => ({ prediction: r.prediction, confidence: r.confidence, preview: r._preview, timestamp }));
+
+    if (historyEntries.length) setHistory(prev => [...historyEntries, ...prev]);
   };
 
   const resetApp = () => {
-    setFile(null);
-    setPreview(null);
-    setResult(null);
-    setError(null);
-    setErrorType(null);
+    setFiles([]);
+    setPreviews([]);
+    setResults([]);
+    setProgress({ current: 0, total: 0 });
+  };
+
+  const hasResults = results.length > 0;
+  const isMulti = results.length > 1;
+
+  const analyzeLabel = () => {
+    if (!loading) return files.length > 1 ? `Analyze ${files.length} Images` : 'Analyze Image';
+    if (progress.total > 1) return `Analyzing ${progress.current}/${progress.total}...`;
+    return 'Analyzing...';
   };
 
   return (
@@ -120,55 +130,145 @@ function App() {
       </header>
 
       <main className="w-full flex-center flex-col">
-        {!result && (
+        {!hasResults && (
           <div className="glass-card fade-in-up">
             <ImageUpload onUpload={handleUpload} isLoading={loading} />
 
-            {file && (
+            {files.length > 0 && (
               <div style={{ marginTop: '1.5rem' }}>
                 <button
                   className="btn"
-                  onClick={analyzeImage}
+                  onClick={analyzeImages}
                   disabled={loading}
                   style={{ width: '100%' }}
                 >
-                  {loading ? 'Analyzing...' : 'Analyze Image'}
+                  {analyzeLabel()}
                 </button>
-              </div>
-            )}
-
-            {errorType === 'not_feline' && (
-              <div style={{
-                marginTop: '1.2rem',
-                padding: '1rem 1.2rem',
-                background: 'rgba(139,74,60,0.08)',
-                border: '1px solid rgba(139,74,60,0.35)',
-                borderRadius: '12px',
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '2.2rem', marginBottom: '0.4rem' }}>🐾</div>
-                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginBottom: '0.3rem' }}>
-                  No Cat Detected
-                </p>
-                <p style={{ fontSize: '0.87rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  {error}
-                </p>
-              </div>
-            )}
-
-            {error && errorType !== 'not_feline' && (
-              <div style={{ color: 'var(--error)', textAlign: 'center', marginTop: '1rem' }}>
-                {error}
               </div>
             )}
           </div>
         )}
 
-        {result && (
-          <PredictionResult result={result} onReset={resetApp} />
+        {hasResults && (
+          <div className="fade-in-up" style={{ width: '100%' }}>
+            {isMulti && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                padding: '0.85rem 1.1rem',
+                background: 'var(--glass-bg)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '14px',
+                boxShadow: '0 2px 12px rgba(103,114,81,0.1)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ fontSize: '1.3rem' }}>🐾</span>
+                  <div>
+                    <div style={{ fontWeight: '700', fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}>
+                      Analysis Complete
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      {results.length} image{results.length !== 1 ? 's' : ''} processed
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="btn"
+                  onClick={resetApp}
+                  style={{ background: '#4a5240', border: 'none', color: '#fff', fontSize: '0.85rem', padding: '0.45rem 1rem' }}
+                >
+                  + New Batch
+                </button>
+              </div>
+            )}
+
+            <div style={isMulti ? {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              columnGap: '1rem',
+              rowGap: '2rem',
+              alignItems: 'start',
+            } : {}}>
+              {results.map((result, i) => (
+                <div key={i}>
+                  {isMulti && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      marginBottom: '0.25rem',
+                      padding: '0.45rem 0.7rem',
+                      background: 'var(--glass-bg)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: '10px',
+                    }}>
+                      <img
+                        src={previews[i]}
+                        alt={`Image ${i + 1}`}
+                        style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0 }}
+                      />
+                      <span style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.88rem' }}>
+                        Image {i + 1}
+                      </span>
+                      <span style={{
+                        marginLeft: 'auto',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-muted)',
+                        background: 'rgba(103,114,81,0.12)',
+                        borderRadius: '20px',
+                        padding: '2px 8px',
+                      }}>
+                        {result._error ? 'error' : `${(result.confidence * 100).toFixed(0)}% confidence`}
+                      </span>
+                    </div>
+                  )}
+
+                  {result._error === 'not_feline' ? (
+                    <div className="glass-card" style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '2.2rem', marginBottom: '0.4rem' }}>🐾</div>
+                      <p style={{ fontWeight: '600', color: 'var(--text-main)', marginBottom: '0.3rem' }}>No Cat Detected</p>
+                      <p style={{ fontSize: '0.87rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>{result.message}</p>
+                      {!isMulti && (
+                        <button onClick={resetApp} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', marginTop: '1rem', width: '100%' }}>
+                          Try Another Image
+                        </button>
+                      )}
+                    </div>
+                  ) : result._error ? (
+                    <div className="glass-card" style={{ textAlign: 'center' }}>
+                      <p style={{ color: 'var(--error)' }}>{result.message}</p>
+                      {!isMulti && (
+                        <button onClick={resetApp} className="btn" style={{ background: '#4a5240', border: 'none', color: '#fff', marginTop: '1rem', width: '100%' }}>
+                          Try Another Image
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <PredictionResult
+                      result={result}
+                      onReset={resetApp}
+                      showReset={!isMulti}
+                      outerStyle={isMulti ? { marginTop: 0 } : {}}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {isMulti && (
+              <button
+                className="btn"
+                onClick={resetApp}
+                style={{ background: '#4a5240', border: 'none', color: '#fff', width: '100%', marginTop: '0.5rem' }}
+              >
+                Analyze Another Batch
+              </button>
+            )}
+          </div>
         )}
 
-        {/* Scan history shown below result or upload card */}
         <ScanHistory
           history={history}
           onClear={() => setHistory([])}
