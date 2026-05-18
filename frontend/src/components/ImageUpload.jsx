@@ -40,10 +40,23 @@ const ImageUpload = ({ onUpload, isLoading }) => {
             return;
         }
 
+        if (file.size > 10 * 1024 * 1024) {
+            alert("Image too large. Please upload an image under 10 MB.");
+            return;
+        }
+
         const reader = new FileReader();
         reader.onloadend = () => {
-            setPreview(reader.result);
-            onUpload(file, reader.result);
+            const img = new window.Image();
+            img.onload = () => {
+                if (img.width < 64 || img.height < 64) {
+                    alert("Image too small (minimum 64×64 px). Please use a clearer, higher-resolution photo.");
+                    return;
+                }
+                setPreview(reader.result);
+                onUpload(file, reader.result);
+            };
+            img.src = reader.result;
         };
         reader.readAsDataURL(file);
     };

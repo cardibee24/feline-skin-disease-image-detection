@@ -12,6 +12,7 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [errorType, setErrorType] = useState(null);
   const [history, setHistory] = useState([]);
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
@@ -27,6 +28,7 @@ function App() {
     setPreview(previewData);
     setResult(null);
     setError(null);
+    setErrorType(null);
   };
 
   const analyzeImage = async () => {
@@ -44,6 +46,12 @@ function App() {
       });
 
       if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        if (errData?.detail?.error === 'not_feline') {
+          setError(errData.detail.message);
+          setErrorType('not_feline');
+          return;
+        }
         throw new Error('Failed to analyze image. Is the backend running?');
       }
 
@@ -75,6 +83,7 @@ function App() {
     setPreview(null);
     setResult(null);
     setError(null);
+    setErrorType(null);
   };
 
   return (
@@ -128,7 +137,26 @@ function App() {
               </div>
             )}
 
-            {error && (
+            {errorType === 'not_feline' && (
+              <div style={{
+                marginTop: '1.2rem',
+                padding: '1rem 1.2rem',
+                background: 'rgba(139,74,60,0.08)',
+                border: '1px solid rgba(139,74,60,0.35)',
+                borderRadius: '12px',
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '2.2rem', marginBottom: '0.4rem' }}>🐾</div>
+                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginBottom: '0.3rem' }}>
+                  No Cat Detected
+                </p>
+                <p style={{ fontSize: '0.87rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  {error}
+                </p>
+              </div>
+            )}
+
+            {error && errorType !== 'not_feline' && (
               <div style={{ color: 'var(--error)', textAlign: 'center', marginTop: '1rem' }}>
                 {error}
               </div>

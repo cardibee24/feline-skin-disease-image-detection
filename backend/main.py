@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import io
@@ -32,11 +32,51 @@ model_arch = None
 class_names = []
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# Gate-keeper: ImageNet domestic cat class indices (281–285)
+# 281=tabby, 282=tiger cat (domestic tabby), 283=Persian, 284=Siamese, 285=Egyptian cat
+IMAGENET_CAT_INDICES = set(range(281, 286))
+gate_model = None
+
 MODEL_FILES = {
     'resnet18':    'resnet18.pth',
     'resnet50':    'resnet50.pth',
     'mobilenetv2': 'mobilenetv2.pth',
 }
+
+def load_gate_model():
+    global gate_model
+    try:
+        try:
+            gate_model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V1)
+        except AttributeError:
+            gate_model = models.mobilenet_v2(pretrained=True)
+        gate_model.eval()
+        print("Gate-keeper model (ImageNet MobileNetV2) loaded.")
+    except Exception as e:
+        print(f"Gate-keeper model failed to load: {e}")
+
+def is_feline_image(pil_image, min_cat_prob=0.20):
+    """Return True only if domestic cat classes hold >= min_cat_prob total probability mass.
+
+    Checking top-k index membership is too loose: a tiger image leaks 'tabby cat' into
+    the top-5 at ~1-2%, causing a false pass. Summing softmax probability over all domestic
+    cat classes (281-285) and requiring >= 20% rejects wild cats/non-cats while accepting
+    real domestic cat images that typically score 50-90% on those classes.
+    """
+    if gate_model is None:
+        return True  # fail open if gate model unavailable
+    with torch.no_grad():
+        tensor = transform(pil_image).unsqueeze(0)  # runs on CPU
+        out = gate_model(tensor)
+        probs = torch.softmax(out, dim=1)[0]
+        cat_prob = sum(probs[idx].item() for idx in IMAGENET_CAT_INDICES)
+    return cat_prob >= min_cat_prob
+
+def compute_normalized_entropy(probabilities):
+    """Entropy normalised to [0, 1]. Values near 1 mean the model is maximally uncertain."""
+    entropy = -torch.sum(probabilities * torch.log(probabilities + 1e-9))
+    max_entropy = torch.log(torch.tensor(float(len(class_names))))
+    return (entropy / max_entropy).item()
 
 def build_model(arch, num_classes):
     if arch == 'resnet18':
@@ -104,12 +144,13 @@ def load_model():
         print("No model file found. Using Mock Model.")
         return False
 
-# Initialize model
+# Initialize models
 model_loaded = load_model()
 if model_loaded:
     print(f"Server initialized with classes: {class_names}")
 else:
     print("WARNING: Server initialized in MOCK MODE")
+load_gate_model()
 
 def apply_clahe(pil_image):
     """Apply CLAHE to the L channel of the image in LAB colour space."""
@@ -184,6 +225,16 @@ async def predict(file: UploadFile = File(...)):
     image_data = await file.read()
     image = Image.open(io.BytesIO(image_data)).convert('RGB')
 
+    # --- Guardrail 1: ImageNet gate-keeper (domestic cat check) ---
+    if not is_feline_image(image):
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "not_feline",
+                "message": "No domestic cat detected in this image. Please upload a clear, close-up photo of a cat's skin.",
+            },
+        )
+
     if model_loaded and model:
         # Apply CLAHE preprocessing
         image = apply_clahe(image)
@@ -197,6 +248,10 @@ async def predict(file: UploadFile = File(...)):
         top_prob, top_catid = torch.topk(probabilities, 1)
         confidence = top_prob.item()
         label = class_names[top_catid.item()]
+
+        # --- Guardrail 2: entropy-based out-of-distribution guard ---
+        normalized_entropy = compute_normalized_entropy(probabilities)
+        is_ood = normalized_entropy > 0.85
 
         all_probs = [
             {"label": class_names[i], "confidence": float(probabilities[i])}
@@ -215,9 +270,10 @@ async def predict(file: UploadFile = File(...)):
         return {
             "prediction": label,
             "confidence": float(confidence),
+            "is_ood": is_ood,
             "all_probabilities": all_probs,
             "gradcam_image": gradcam_base64,
-            "mode": "real_model"
+            "mode": "real_model",
         }
     else:
         # Mock Inference
@@ -235,9 +291,10 @@ async def predict(file: UploadFile = File(...)):
         return {
             "prediction": label,
             "confidence": confidence,
+            "is_ood": False,
             "all_probabilities": all_probs,
             "gradcam_image": None,
-            "mode": "mock_model"
+            "mode": "mock_model",
         }
 
 if __name__ == "__main__":

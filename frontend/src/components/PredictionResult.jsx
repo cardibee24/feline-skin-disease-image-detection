@@ -32,7 +32,7 @@ const severityBg = { high: 'rgba(139,74,60,0.08)', medium: 'rgba(161,144,124,0.1
 
 const PredictionResult = ({ result, onReset }) => {
     if (!result) return null;
-    const { prediction, confidence, all_probabilities, gradcam_image, mode } = result;
+    const { prediction, confidence, all_probabilities, gradcam_image, mode, is_ood } = result;
     const percentage = (confidence * 100).toFixed(1);
     const isUnclear = confidence < 0.5;
     const isLowConfidence = confidence >= 0.5 && confidence < 0.7;
@@ -80,6 +80,26 @@ const PredictionResult = ({ result, onReset }) => {
     return (
         <div className="glass-card fade-in-up" style={{ marginTop: '2rem', textAlign: 'center' }}>
             <h2 style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>Analysis Result</h2>
+
+            {/* OOD warning — model maximally uncertain across all disease classes */}
+            {is_ood && (
+                <div style={{
+                    background: 'rgba(139,74,60,0.08)',
+                    border: '1px solid rgba(139,74,60,0.35)',
+                    borderRadius: '10px',
+                    padding: '0.7rem 1rem',
+                    marginBottom: '1.2rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    textAlign: 'left',
+                }}>
+                    <span style={{ fontSize: '1.1rem' }}>🚨</span>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: '1.5' }}>
+                        <strong>Unusual image detected.</strong> The model is highly uncertain — this image may not show a typical feline skin condition. Please retake the photo and consult a vet.
+                    </p>
+                </div>
+            )}
 
             {/* Low confidence warning */}
             {isLowConfidence && (
