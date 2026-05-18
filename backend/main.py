@@ -97,12 +97,17 @@ def build_model(arch, num_classes):
         raise ValueError(f"Unknown architecture: {arch}")
     return m
 
-def get_target_layer(arch):
-    if arch in ('resnet18', 'resnet50'):
-        return model.layer4[-1]
+def get_target_layers(arch):
+    # layer2 (28×28) for fine detail, layer3 (14×14) for mid-level patterns,
+    # layer4 (7×7) for semantic context.  layer1 excluded — its 56×56 grid
+    # produces a dotted/pixelated pattern after upsampling.
+    if arch == 'resnet18':
+        return [model.layer2[-1], model.layer3[-1], model.layer4[-1]]
+    elif arch == 'resnet50':
+        return [model.layer2[-1], model.layer3[-1], model.layer4[-1]]
     elif arch == 'mobilenetv2':
-        return model.features[-1]
-    return None
+        return [model.features[-5], model.features[-3], model.features[-1]]
+    return []
 
 def pick_best_model():
     """Read metrics.json to find the best model, fallback to first available .pth."""
@@ -169,13 +174,23 @@ def apply_clahe(pil_image):
     return Image.fromarray(enhanced)
 
 def compute_gradcam(input_tensor, target_class_idx):
-    target_layer = get_target_layer(model_arch)
-    if target_layer is None:
+    target_layers = get_target_layers(model_arch)
+    if not target_layers:
         return None
-    with GradCAMPlusPlus(model=model, target_layers=[target_layer]) as cam:
+    with GradCAMPlusPlus(model=model, target_layers=target_layers) as cam:
         targets = [ClassifierOutputTarget(target_class_idx)]
-        grayscale_cam = cam(input_tensor=input_tensor, targets=targets)
-    return grayscale_cam[0]
+        grayscale_cam = cam(
+            input_tensor=input_tensor,
+            targets=targets,
+            eigen_smooth=True,
+        )
+    # Gaussian blur smooths out the block-grid artefacts that appear when
+    # multiple feature-map scales are aggregated and upsampled.
+    raw = grayscale_cam[0]
+    smoothed = cv2.GaussianBlur(raw, (0, 0), sigmaX=3)
+    # Re-normalise so the peak stays at 1.0 after blurring.
+    smoothed = smoothed / (smoothed.max() + 1e-8)
+    return smoothed
 
 def overlay_heatmap(pil_image, cam):
     """Overlay Grad-CAM heatmap onto the model-input crop and return as base64 PNG."""
@@ -190,13 +205,70 @@ def overlay_heatmap(pil_image, cam):
     cropped = resized.crop((left, top, left + 224, top + 224))
     img = np.array(cropped).astype(np.uint8)
 
-    # Resize CAM to image size and apply jet colormap
     cam_resized = cv2.resize(cam, (224, 224))
-    heatmap = cv2.applyColorMap(np.uint8(255 * cam_resized), cv2.COLORMAP_JET)
+
+    # --- Colour guide: anomaly + pink/red skin detector ------------------
+    img_f32 = img.astype(np.float32) / 255.0
+
+    # 1) Two-scale spatial anomaly (colour deviation from local neighbourhood).
+    m_fine   = cv2.blur(img_f32, (21, 21))
+    m_coarse = cv2.blur(img_f32, (81, 81))
+    anom = np.maximum(
+        np.mean((img_f32 - m_fine)   ** 2, axis=2),
+        np.mean((img_f32 - m_coarse) ** 2, axis=2),
+    )
+    anom = cv2.GaussianBlur(anom.astype(np.float32), (11, 11), 0)
+    anom = anom / (anom.max() + 1e-8)
+
+    # 2) Pink/red skin detector (hue-based).
+    # Inflamed tissue (ringworm, flea bites, scabies) has hue near 0°/360° (red-pink).
+    # Orange fur sits at H 8-25 in OpenCV; white fur has near-zero saturation.
+    # → Only pink/red pixels with some saturation and brightness qualify.
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV).astype(np.float32)
+    h_ch = img_hsv[:, :, 0]           # OpenCV: 0-180
+    s_ch = img_hsv[:, :, 1] / 255.0
+    v_ch = img_hsv[:, :, 2] / 255.0
+    # Bright inflamed tissue: pink/red hue, reasonably bright (ringworm, exposed skin)
+    bright_pinkred = (((h_ch < 9) | (h_ch > 163)) & (s_ch > 0.20) & (v_ch > 0.25)).astype(np.float32)
+    # Dark red/brown spots: flea bite dots on orange fur — darker, slightly wider hue
+    dark_spots = ((h_ch < 14) & (s_ch > 0.15) & (v_ch > 0.10) & (v_ch < 0.58)).astype(np.float32)
+    pinkred = np.maximum(bright_pinkred, dark_spots)
+    pinkred = cv2.GaussianBlur(pinkred, (11, 11), 0)
+    pinkred = pinkred / (pinkred.max() + 1e-8)
+
+    # 3) Combined guide: max of spatial anomaly and pink/red skin signal.
+    guide = np.maximum(anom, pinkred)
+    guide = guide / (guide.max() + 1e-8)
+
+    # Stronger blend: high-guide regions fully boosted, low-guide suppressed harder.
+    cam_guided = cam_resized * (0.25 + 0.75 * guide)
+    cam_guided /= (cam_guided.max() + 1e-8)
+    # --------------------------------------------------------------------
+
+    # Threshold: drop bottom 20 % only — keep most signal so dim spots aren't lost.
+    thresh = float(np.percentile(cam_guided, 20))
+    cam_clean = np.where(cam_guided >= thresh, cam_guided, 0.0)
+    if cam_clean.max() > 0:
+        cam_clean /= cam_clean.max()
+
+    # Small close: merges adjacent cells within the same lesion without
+    # expanding outward into the surrounding fur.
+    k_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    binary  = (cam_clean > 0).astype(np.uint8)
+    closed  = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, k_close)
+    cam_filled = cam_clean * closed.astype(np.float32)
+    if cam_filled.max() > 0:
+        cam_filled /= cam_filled.max()
+
+    # Mild gamma so dim lesion areas stay visible alongside the brightest spot.
+    cam_final = np.power(cam_filled, 0.55)
+
+    heatmap = cv2.applyColorMap(np.uint8(255 * cam_final), cv2.COLORMAP_JET)
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
 
-    # Blend original + heatmap
-    overlay = (0.55 * img + 0.45 * heatmap).astype(np.uint8)
+    # Adaptive blend: high-activation pixels show more heatmap, background stays natural.
+    alpha = (0.30 + 0.55 * cam_final[:, :, np.newaxis]).clip(0, 1)
+    overlay = ((1 - alpha) * img + alpha * heatmap).astype(np.uint8)
 
     # Encode to base64
     overlay_pil = Image.fromarray(overlay)
