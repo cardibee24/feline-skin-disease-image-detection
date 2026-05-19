@@ -1,0 +1,296 @@
+[
+  {
+    "file": "1000010593_x4.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.834
+  },
+  {
+    "file": "1000010601_x4.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.5258
+  },
+  {
+    "file": "1000010683_x4_jpg.rf.cb1c97e6b9801cad426b56d1fc616683.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.826
+  },
+  {
+    "file": "144276912_10226592175300698_232677143469954490_n_jpg.rf.263efa1bb0c77a8ca603b918ac7a6b25.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.9596
+  },
+  {
+    "file": "438910578_10220571452555225_8508184020251308112_n_jpg.rf.eed9b793052c8f4881a75df4c02c7fea.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.5987
+  },
+  {
+    "file": "HOT-SPOT-IN-DOG-HOW-vet-treated-symptom-prevention_-flea-bite-moist-eczema_dog-itching-000358_png_jpg.rf.6af3a3701439210831f0771460d49bb2.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.6953
+  },
+  {
+    "file": "Image_1-4-.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.6772
+  },
+  {
+    "file": "Image_31 (3).jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.7195
+  },
+  {
+    "file": "Image_31-3-_jpg.rf.1af586148221280857fd3e3c3f953132.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.6554
+  },
+  {
+    "file": "Image_34_jpg.rf.c09f7721ea076b5832774993ac9e56ab.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.8636
+  },
+  {
+    "file": "Image_37.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.7236
+  },
+  {
+    "file": "Image_38.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.73
+  },
+  {
+    "file": "Image_38_jpg.rf.7509c05c7fd2570c7454291e3f88b684.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.7036
+  },
+  {
+    "file": "Image_42.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.552
+  },
+  {
+    "file": "Image_56.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.5854
+  },
+  {
+    "file": "Image_60-2-_jpg.rf.b4c6a434f328eb4480a43d11e6bbc7ce.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.8762
+  },
+  {
+    "file": "Image_61.jpg",
+    "true_label": "flea",
+    "predicted_label": "scabies",
+    "confidence": 0.5971
+  },
+  {
+    "file": "flea-allergy_0001_jpg.rf.f8221edbd4250666b0167798d9d4dd0a.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.834
+  },
+  {
+    "file": "flea-allergy_0025_jpg.rf.e7a2865b70e9d178402563ad9d92c544.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.7625
+  },
+  {
+    "file": "flea-allergy_0026_jpg.rf.96eb7ea2cd20ee5d587857cb33a67cf4.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.8263
+  },
+  {
+    "file": "flea-allergy_0038_jpg.rf.b46984b7824eb566e6d63d02ef74e117.jpg",
+    "true_label": "flea",
+    "predicted_label": "scabies",
+    "confidence": 0.6557
+  },
+  {
+    "file": "flea-allergy_0197_jpg.rf.b9e636444c884100c45578d5f8eef8c0.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.6731
+  },
+  {
+    "file": "image_16.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.7942
+  },
+  {
+    "file": "image_16_jpg.rf.d69bcda38509a44290fa1fd21a7b0320.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.7942
+  },
+  {
+    "file": "image_20.jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.4943
+  },
+  {
+    "file": "thumb (20).jpg",
+    "true_label": "flea",
+    "predicted_label": "ringworm",
+    "confidence": 0.6864
+  },
+  {
+    "file": "2009-2652-Yegar-M-Canis-Ca_jpg.rf.e1294942ce71453f00e52d35d8e70a5c.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.7419
+  },
+  {
+    "file": "CatWithRingworm_gi_1173607703.png",
+    "true_label": "ringworm",
+    "predicted_label": "healthy",
+    "confidence": 0.8072
+  },
+  {
+    "file": "Image_22-2-_jpg.rf.f9811834943e4b7df2dfc4db4d868ce5.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.708
+  },
+  {
+    "file": "Image_24-3-_png_jpg.rf.302758d5804d488a8c0a87d441ca4095.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.7561
+  },
+  {
+    "file": "Image_31-2-_jpg.rf.2fc70d589271517fff0c90c0a84fd4eb.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.7107
+  },
+  {
+    "file": "Image_47-3-_jpg.rf.5460d897b88d2ed2d2c68b5e5755fa50.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.6224
+  },
+  {
+    "file": "Image_5-3-.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "healthy",
+    "confidence": 0.7486
+  },
+  {
+    "file": "Image_56_jpg.rf.c2dab4a810c53f98e8ae04329a29fe8d.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.5288
+  },
+  {
+    "file": "Image_62_jpg.rf.145a30a4aa5f1691c035bb446d12dc94.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.9014
+  },
+  {
+    "file": "Ringworm-in-Cats-Treatments-and-Symptoms-5_jpg.rf.56feb757eae80f0de0beda81fe4f0bf6.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.526
+  },
+  {
+    "file": "Screenshot 2024-11-16 182620.png",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.5799
+  },
+  {
+    "file": "image151_jpg.rf.6da0164990daaac57476b32e2824b1e0.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "healthy",
+    "confidence": 0.5556
+  },
+  {
+    "file": "image88_jpg.rf.85fcaf7adc26e0a09bf6865c8d0dc7b5.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.8291
+  },
+  {
+    "file": "images-43-_jpeg_jpg.rf.55926d8b9f59f4fdb05fb2bcde73ef94.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "scabies",
+    "confidence": 0.6971
+  },
+  {
+    "file": "ringworm10_jpg.rf.084f797fac699cab1e133bb89a76a85b.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.5615
+  },
+  {
+    "file": "ringworm16_jpg.rf.019b3c1aabc21fb0b219a90ddfc02a8e.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.6073
+  },
+  {
+    "file": "ringworm16_jpg.rf.78fbd9d5df5d905b311ff813d0afb536.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.556
+  },
+  {
+    "file": "ringworm18_jpg.rf.4dcd8b520ac20d81b6cb4c46fad33146.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.6031
+  },
+  {
+    "file": "waj1_jpeg.jpg",
+    "true_label": "ringworm",
+    "predicted_label": "flea",
+    "confidence": 0.697
+  },
+  {
+    "file": "EvPj5IaWgAALOwO_jpg.rf.f637b44e0f53f1b2e2f00247b21c869e.jpg",
+    "true_label": "scabies",
+    "predicted_label": "ringworm",
+    "confidence": 0.5619
+  },
+  {
+    "file": "Screenshot 2024-11-16 181330.png",
+    "true_label": "scabies",
+    "predicted_label": "ringworm",
+    "confidence": 0.9128
+  },
+  {
+    "file": "Screenshot 2024-11-16 181659.png",
+    "true_label": "scabies",
+    "predicted_label": "ringworm",
+    "confidence": 0.8649
+  },
+  {
+    "file": "s16_jpeg_jpg.rf.61ec7887ad6f6390c675a88ad1201373.jpg",
+    "true_label": "scabies",
+    "predicted_label": "ringworm",
+    "confidence": 0.6069
+  }
+]

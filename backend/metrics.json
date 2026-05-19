@@ -30,6 +30,42 @@
       "support": 328
     }
   },
+  "confusion_matrix": {
+    "labels": [
+      "flea",
+      "healthy",
+      "ringworm",
+      "scabies"
+    ],
+    "matrix": [
+      [
+        318,
+        1,
+        15,
+        0
+      ],
+      [
+        0,
+        317,
+        2,
+        0
+      ],
+      [
+        9,
+        1,
+        300,
+        0
+      ],
+      [
+        0,
+        0,
+        4,
+        324
+      ]
+    ]
+  },
+  "misclassified_count": 32,
+  "total_val_samples": 1291,
   "best_model": "resnet50",
   "epochs": 25,
   "dataset_split": "80% Train / 20% Validation",
@@ -65,7 +101,43 @@
           "f1_score": 0.9893,
           "support": 328
         }
-      }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "flea",
+          "healthy",
+          "ringworm",
+          "scabies"
+        ],
+        "matrix": [
+          [
+            308,
+            0,
+            24,
+            2
+          ],
+          [
+            0,
+            319,
+            0,
+            0
+          ],
+          [
+            15,
+            3,
+            291,
+            1
+          ],
+          [
+            0,
+            0,
+            4,
+            324
+          ]
+        ]
+      },
+      "misclassified_count": 49,
+      "total_val_samples": 1291
     },
     "resnet50": {
       "overall_accuracy": 0.9752,
@@ -98,7 +170,43 @@
           "f1_score": 0.9939,
           "support": 328
         }
-      }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "flea",
+          "healthy",
+          "ringworm",
+          "scabies"
+        ],
+        "matrix": [
+          [
+            318,
+            1,
+            15,
+            0
+          ],
+          [
+            0,
+            317,
+            2,
+            0
+          ],
+          [
+            9,
+            1,
+            300,
+            0
+          ],
+          [
+            0,
+            0,
+            4,
+            324
+          ]
+        ]
+      },
+      "misclassified_count": 32,
+      "total_val_samples": 1291
     },
     "mobilenetv2": {
       "overall_accuracy": 0.9651,
@@ -131,7 +239,43 @@
           "f1_score": 0.9878,
           "support": 328
         }
-      }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "flea",
+          "healthy",
+          "ringworm",
+          "scabies"
+        ],
+        "matrix": [
+          [
+            316,
+            3,
+            15,
+            0
+          ],
+          [
+            0,
+            316,
+            1,
+            2
+          ],
+          [
+            15,
+            3,
+            291,
+            1
+          ],
+          [
+            0,
+            2,
+            3,
+            323
+          ]
+        ]
+      },
+      "misclassified_count": 45,
+      "total_val_samples": 1291
     }
   }
 }

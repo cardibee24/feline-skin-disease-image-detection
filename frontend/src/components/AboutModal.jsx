@@ -176,6 +176,83 @@ const AboutModal = () => {
                         </Section>
                     )}
 
+                    {/* Confusion Matrix */}
+                    {metrics && metrics.confusion_matrix && (() => {
+                        const { labels, matrix } = metrics.confusion_matrix;
+                        const maxVal = Math.max(...matrix.flat());
+                        const total = matrix.flat().reduce((a, b) => a + b, 0);
+                        const correct = matrix.reduce((s, row, i) => s + row[i], 0);
+                        return (
+                            <div style={{ marginBottom: '1rem' }}>
+                                <p style={{
+                                    fontSize: '0.78rem',
+                                    fontWeight: '700',
+                                    color: 'var(--primary-color)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.06em',
+                                    marginBottom: '0.5rem',
+                                }}>
+                                    🔢 Confusion Matrix
+                                </p>
+                                <div style={{
+                                    background: 'var(--glass-bg)',
+                                    border: '1px solid var(--glass-border)',
+                                    borderRadius: '12px',
+                                    padding: '0.75rem',
+                                }}>
+                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                                        Rows = True label &nbsp;|&nbsp; Columns = Predicted label &nbsp;|&nbsp;
+                                        Diagonal = correct &nbsp;|&nbsp; Off-diagonal = misclassified
+                                    </p>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ borderCollapse: 'collapse', fontSize: '0.75rem', width: '100%' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ padding: '4px 6px', color: 'var(--text-muted)', textAlign: 'right', fontWeight: '600', fontSize: '0.7rem' }}>True ↓ / Pred →</th>
+                                                    {labels.map(l => (
+                                                        <th key={l} style={{ padding: '4px 6px', color: 'var(--text-muted)', textAlign: 'center', fontWeight: '600', fontSize: '0.7rem', textTransform: 'capitalize' }}>{l}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {matrix.map((row, i) => (
+                                                    <tr key={labels[i]}>
+                                                        <td style={{ padding: '4px 8px', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.7rem', textAlign: 'right', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{labels[i]}</td>
+                                                        {row.map((val, j) => {
+                                                            const isDiag = i === j;
+                                                            const intensity = maxVal > 0 ? val / maxVal : 0;
+                                                            const bg = isDiag
+                                                                ? `rgba(76,175,80,${0.15 + 0.65 * intensity})`
+                                                                : val > 0 ? `rgba(229,57,53,${0.12 + 0.55 * intensity})` : 'transparent';
+                                                            return (
+                                                                <td key={j} style={{
+                                                                    padding: '5px 8px',
+                                                                    textAlign: 'center',
+                                                                    background: bg,
+                                                                    color: intensity > 0.6 ? '#fff' : 'var(--text-main)',
+                                                                    fontWeight: isDiag ? '700' : '400',
+                                                                    border: '1px solid var(--glass-border)',
+                                                                    borderRadius: '4px',
+                                                                    minWidth: '36px',
+                                                                }}>
+                                                                    {val}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                                        Correctly classified: <strong style={{ color: 'var(--text-main)' }}>{correct}</strong> / {total} &nbsp;|&nbsp;
+                                        Misclassified: <strong style={{ color: '#e53935' }}>{metrics.misclassified_count}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Model Comparison Table */}
                     {metrics && metrics.comparison && Object.keys(metrics.comparison).length > 1 && (
                         <div style={{ marginBottom: '1rem' }}>

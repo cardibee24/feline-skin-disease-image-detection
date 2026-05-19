@@ -270,25 +270,58 @@ const ImageUpload = ({ onUpload, isLoading }) => {
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.4rem' }}>
                             {dragActive ? 'Drop it!' : 'Upload Feline Images'}
                         </h3>
-                        <p style={{ color: 'var(--text-muted)' }}>
-                            {dragActive
-                                ? 'Release to upload'
-                                : <>Drag & drop or <span onClick={() => inputRef.current.click()} style={{ color: 'var(--primary-color)', cursor: 'pointer', textDecoration: 'underline' }}>browse</span> (up to {MAX_IMAGES} images)</>
-                            }
-                        </p>
 
-                        <div style={{ borderBottom: '1px solid var(--glass-border)', width: '50%', margin: '1rem 0' }}></div>
+                        {dragActive ? (
+                            <p style={{ color: 'var(--primary-color)', fontWeight: '600' }}>Release to upload</p>
+                        ) : (
+                            <>
+                                <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', marginBottom: '0.85rem' }}>
+                                    <button
+                                        onClick={() => inputRef.current.click()}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '6px',
+                                            background: 'var(--primary-color)', border: 'none',
+                                            borderRadius: '10px', color: '#fff',
+                                            fontSize: '0.88rem', fontWeight: '600',
+                                            cursor: 'pointer', padding: '0.55rem 1.2rem',
+                                            boxShadow: '0 2px 8px rgba(103,114,81,0.3)',
+                                            transition: 'opacity 0.2s',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                                        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                        </svg>
+                                        Browse
+                                    </button>
 
-                        <button
-                            className="btn"
-                            style={{ marginTop: '0.5rem' }}
-                            onClick={(e) => { e.stopPropagation(); setIsCameraMode(true); }}
-                        >
-                            <span style={{ marginRight: '8px' }}>📷</span> Take Photo
-                        </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setIsCameraMode(true); }}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '6px',
+                                            background: 'transparent',
+                                            border: '1.5px solid var(--glass-border)',
+                                            borderRadius: '10px', color: 'var(--text-main)',
+                                            fontSize: '0.88rem', fontWeight: '600',
+                                            cursor: 'pointer', padding: '0.55rem 1.2rem',
+                                            transition: 'border-color 0.2s',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary-color)'}
+                                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
+                                    >
+                                        📷 Camera
+                                    </button>
+                                </div>
+
+                                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                    or drag & drop · up to {MAX_IMAGES} images · max 10 MB
+                                </p>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
