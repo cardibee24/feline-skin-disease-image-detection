@@ -20,13 +20,18 @@ def build_model(model_name, num_classes):
         raise ValueError(f"Unknown model: {model_name}")
     return model
 
+HARD_CLASSES = {'flea', 'ringworm'}
+
 def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_size=32, learning_rate=0.001):
     data_transforms = {
         'train': transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(15),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            transforms.RandomVerticalFlip(p=0.1),
+            transforms.RandomRotation(20),
+            transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.15),
+            transforms.RandomGrayscale(p=0.05),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.85, 1.15)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -47,18 +52,26 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
     class_names = image_datasets['train'].classes
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    # Assign 1.5x loss weight to flea and ringworm to penalise their confusion harder
+    class_weights = torch.tensor(
+        [1.5 if c in HARD_CLASSES else 1.0 for c in class_names],
+        dtype=torch.float
+    ).to(device)
+
     print(f"\n{'='*40}")
     print(f"Training: {model_name.upper()}")
     print(f"Device  : {device}")
     print(f"Classes : {class_names}")
+    print(f"Weights : {dict(zip(class_names, class_weights.tolist()))}")
     print(f"{'='*40}\n")
 
     model = build_model(model_name, len(class_names))
     model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
-    exp_lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
+    exp_lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
 
     best_model_wts = model.state_dict()
     best_acc = 0.0
@@ -92,9 +105,6 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
-            if phase == 'train':
-                exp_lr_scheduler.step()
-
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}', flush=True)
@@ -103,6 +113,7 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
                 best_acc = epoch_acc
                 best_model_wts = model.state_dict()
 
+        exp_lr_scheduler.step()
         print()
 
     print(f'Best val Acc ({model_name}): {best_acc:.4f}')
