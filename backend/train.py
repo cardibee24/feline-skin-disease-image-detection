@@ -138,7 +138,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='all',
                         choices=['resnet18', 'resnet50', 'mobilenetv2', 'all'],
                         help='Model to train (default: all)')
-    parser.add_argument('--epochs', type=int, default=25)
+    parser.add_argument('--epochs', type=int, default=30)
     args = parser.parse_args()
 
     models_to_train = ['resnet18', 'resnet50', 'mobilenetv2'] if args.model == 'all' else [args.model]
