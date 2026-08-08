@@ -4,6 +4,7 @@ import torch.optim as optim
 from torchvision import datasets, models, transforms
 import os
 import argparse
+from clahe_transform import CLAHETransform
 
 def build_model(model_name, num_classes):
     """Build and return a model with replaced final layer."""
@@ -22,9 +23,10 @@ def build_model(model_name, num_classes):
 
 HARD_CLASSES = {'flea', 'ringworm'}
 
-def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_size=32, learning_rate=0.001):
+def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_size=32, learning_rate=0.001, use_clahe=False):
+    clahe_step = [CLAHETransform()] if use_clahe else []
     data_transforms = {
-        'train': transforms.Compose([
+        'train': transforms.Compose(clahe_step + [
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(p=0.1),
@@ -35,7 +37,7 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
-        'val': transforms.Compose([
+        'val': transforms.Compose(clahe_step + [
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
@@ -60,7 +62,7 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
     ).to(device)
 
     print(f"\n{'='*40}")
-    print(f"Training: {model_name.upper()}")
+    print(f"Training: {model_name.upper()}{' + CLAHE' if use_clahe else ''}")
     print(f"Device  : {device}")
     print(f"Classes : {class_names}")
     print(f"Weights : {dict(zip(class_names, class_weights.tolist()))}")
@@ -119,7 +121,8 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
     print(f'Best val Acc ({model_name}): {best_acc:.4f}')
     model.load_state_dict(best_model_wts)
 
-    save_path = f'{model_name}.pth'
+    suffix = '_clahe' if use_clahe else ''
+    save_path = f'{model_name}{suffix}.pth'
     torch.save(model.state_dict(), save_path)
     print(f"Model saved to {save_path}\n")
 
@@ -139,11 +142,13 @@ if __name__ == '__main__':
                         choices=['resnet18', 'resnet50', 'mobilenetv2', 'all'],
                         help='Model to train (default: all)')
     parser.add_argument('--epochs', type=int, default=30)
+    parser.add_argument('--clahe', action='store_true',
+                        help='Apply CLAHE preprocessing (matches main.py inference) and save weights with _clahe suffix')
     args = parser.parse_args()
 
     models_to_train = ['resnet18', 'resnet50', 'mobilenetv2'] if args.model == 'all' else [args.model]
 
     for m in models_to_train:
-        train_model(model_name=m, num_epochs=args.epochs)
+        train_model(model_name=m, num_epochs=args.epochs, use_clahe=args.clahe)
 
     print("All training complete.")

@@ -1,33 +1,33 @@
 {
-  "overall_accuracy": 0.9752,
-  "macro_precision": 0.9752,
-  "macro_recall": 0.9753,
-  "macro_f1": 0.9752,
-  "roc_auc": 0.9987,
+  "overall_accuracy": 0.9514,
+  "macro_precision": 0.9532,
+  "macro_recall": 0.9521,
+  "macro_f1": 0.9525,
+  "roc_auc": 0.9963,
   "per_class": {
     "flea": {
-      "precision": 0.9725,
-      "recall": 0.9521,
-      "f1_score": 0.9622,
-      "support": 334
+      "precision": 0.9379,
+      "recall": 0.9276,
+      "f1_score": 0.9327,
+      "support": 456
     },
     "healthy": {
-      "precision": 0.9937,
-      "recall": 0.9937,
-      "f1_score": 0.9937,
-      "support": 319
+      "precision": 0.9833,
+      "recall": 0.9717,
+      "f1_score": 0.9775,
+      "support": 424
     },
     "ringworm": {
-      "precision": 0.9346,
-      "recall": 0.9677,
-      "f1_score": 0.9509,
-      "support": 310
+      "precision": 0.8941,
+      "recall": 0.9295,
+      "f1_score": 0.9114,
+      "support": 454
     },
     "scabies": {
-      "precision": 1.0,
-      "recall": 0.9878,
-      "f1_score": 0.9939,
-      "support": 328
+      "precision": 0.9977,
+      "recall": 0.9794,
+      "f1_score": 0.9885,
+      "support": 437
     }
   },
   "confusion_matrix": {
@@ -39,67 +39,67 @@
     ],
     "matrix": [
       [
-        318,
+        423,
+        0,
+        33,
+        0
+      ],
+      [
         1,
-        15,
+        412,
+        10,
+        1
+      ],
+      [
+        27,
+        5,
+        422,
         0
       ],
       [
         0,
-        317,
         2,
-        0
-      ],
-      [
-        9,
-        1,
-        300,
-        0
-      ],
-      [
-        0,
-        0,
-        4,
-        324
+        7,
+        428
       ]
     ]
   },
-  "misclassified_count": 32,
-  "total_val_samples": 1291,
-  "best_model": "resnet50",
+  "misclassified_count": 86,
+  "total_val_samples": 1771,
+  "best_model": "mobilenetv2",
   "epochs": 25,
   "dataset_split": "80% Train / 20% Validation",
   "comparison": {
     "resnet18": {
-      "overall_accuracy": 0.962,
-      "macro_precision": 0.9618,
-      "macro_recall": 0.9622,
-      "macro_f1": 0.9619,
-      "roc_auc": 0.9972,
+      "overall_accuracy": 0.9209,
+      "macro_precision": 0.9275,
+      "macro_recall": 0.9215,
+      "macro_f1": 0.9229,
+      "roc_auc": 0.9918,
       "per_class": {
         "flea": {
-          "precision": 0.9536,
-          "recall": 0.9222,
-          "f1_score": 0.9376,
-          "support": 334
+          "precision": 0.9448,
+          "recall": 0.864,
+          "f1_score": 0.9026,
+          "support": 456
         },
         "healthy": {
-          "precision": 0.9907,
-          "recall": 1.0,
-          "f1_score": 0.9953,
-          "support": 319
+          "precision": 0.9728,
+          "recall": 0.9292,
+          "f1_score": 0.9505,
+          "support": 424
         },
         "ringworm": {
-          "precision": 0.9122,
-          "recall": 0.9387,
-          "f1_score": 0.9253,
-          "support": 310
+          "precision": 0.8135,
+          "recall": 0.9317,
+          "f1_score": 0.8686,
+          "support": 454
         },
         "scabies": {
-          "precision": 0.9908,
-          "recall": 0.9878,
-          "f1_score": 0.9893,
-          "support": 328
+          "precision": 0.979,
+          "recall": 0.9611,
+          "f1_score": 0.97,
+          "support": 437
         }
       },
       "confusion_matrix": {
@@ -111,64 +111,64 @@
         ],
         "matrix": [
           [
-            308,
+            394,
             0,
-            24,
+            60,
             2
           ],
           [
             0,
-            319,
-            0,
-            0
+            394,
+            24,
+            6
           ],
           [
-            15,
-            3,
-            291,
+            23,
+            7,
+            423,
             1
           ],
           [
             0,
-            0,
             4,
-            324
+            13,
+            420
           ]
         ]
       },
-      "misclassified_count": 49,
-      "total_val_samples": 1291
+      "misclassified_count": 140,
+      "total_val_samples": 1771
     },
     "resnet50": {
-      "overall_accuracy": 0.9752,
-      "macro_precision": 0.9752,
-      "macro_recall": 0.9753,
-      "macro_f1": 0.9752,
-      "roc_auc": 0.9987,
+      "overall_accuracy": 0.8775,
+      "macro_precision": 0.8813,
+      "macro_recall": 0.8789,
+      "macro_f1": 0.879,
+      "roc_auc": 0.9801,
       "per_class": {
         "flea": {
-          "precision": 0.9725,
-          "recall": 0.9521,
-          "f1_score": 0.9622,
-          "support": 334
+          "precision": 0.9091,
+          "recall": 0.8333,
+          "f1_score": 0.8696,
+          "support": 456
         },
         "healthy": {
-          "precision": 0.9937,
-          "recall": 0.9937,
-          "f1_score": 0.9937,
-          "support": 319
+          "precision": 0.8794,
+          "recall": 0.9458,
+          "f1_score": 0.9114,
+          "support": 424
         },
         "ringworm": {
-          "precision": 0.9346,
-          "recall": 0.9677,
-          "f1_score": 0.9509,
-          "support": 310
+          "precision": 0.7826,
+          "recall": 0.8326,
+          "f1_score": 0.8068,
+          "support": 454
         },
         "scabies": {
-          "precision": 1.0,
-          "recall": 0.9878,
-          "f1_score": 0.9939,
-          "support": 328
+          "precision": 0.9541,
+          "recall": 0.9039,
+          "f1_score": 0.9283,
+          "support": 437
         }
       },
       "confusion_matrix": {
@@ -180,64 +180,64 @@
         ],
         "matrix": [
           [
-            318,
+            380,
             1,
-            15,
-            0
+            69,
+            6
           ],
           [
             0,
-            317,
-            2,
-            0
+            401,
+            17,
+            6
           ],
           [
-            9,
-            1,
-            300,
-            0
+            38,
+            31,
+            378,
+            7
           ],
           [
             0,
-            0,
-            4,
-            324
+            23,
+            19,
+            395
           ]
         ]
       },
-      "misclassified_count": 32,
-      "total_val_samples": 1291
+      "misclassified_count": 217,
+      "total_val_samples": 1771
     },
     "mobilenetv2": {
-      "overall_accuracy": 0.9651,
-      "macro_precision": 0.9649,
-      "macro_recall": 0.965,
-      "macro_f1": 0.9649,
-      "roc_auc": 0.9976,
+      "overall_accuracy": 0.9514,
+      "macro_precision": 0.9532,
+      "macro_recall": 0.9521,
+      "macro_f1": 0.9525,
+      "roc_auc": 0.9963,
       "per_class": {
         "flea": {
-          "precision": 0.9547,
-          "recall": 0.9461,
-          "f1_score": 0.9504,
-          "support": 334
+          "precision": 0.9379,
+          "recall": 0.9276,
+          "f1_score": 0.9327,
+          "support": 456
         },
         "healthy": {
-          "precision": 0.9753,
-          "recall": 0.9906,
-          "f1_score": 0.9829,
-          "support": 319
+          "precision": 0.9833,
+          "recall": 0.9717,
+          "f1_score": 0.9775,
+          "support": 424
         },
         "ringworm": {
-          "precision": 0.9387,
-          "recall": 0.9387,
-          "f1_score": 0.9387,
-          "support": 310
+          "precision": 0.8941,
+          "recall": 0.9295,
+          "f1_score": 0.9114,
+          "support": 454
         },
         "scabies": {
-          "precision": 0.9908,
-          "recall": 0.9848,
-          "f1_score": 0.9878,
-          "support": 328
+          "precision": 0.9977,
+          "recall": 0.9794,
+          "f1_score": 0.9885,
+          "support": 437
         }
       },
       "confusion_matrix": {
@@ -249,33 +249,33 @@
         ],
         "matrix": [
           [
-            316,
-            3,
-            15,
+            423,
+            0,
+            33,
             0
           ],
           [
-            0,
-            316,
             1,
-            2
-          ],
-          [
-            15,
-            3,
-            291,
+            412,
+            10,
             1
           ],
           [
+            27,
+            5,
+            422,
+            0
+          ],
+          [
             0,
             2,
-            3,
-            323
+            7,
+            428
           ]
         ]
       },
-      "misclassified_count": 45,
-      "total_val_samples": 1291
+      "misclassified_count": 86,
+      "total_val_samples": 1771
     }
   }
 }

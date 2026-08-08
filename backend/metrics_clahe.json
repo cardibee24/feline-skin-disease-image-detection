@@ -1,0 +1,281 @@
+{
+  "overall_accuracy": 0.9526,
+  "macro_precision": 0.9539,
+  "macro_recall": 0.9532,
+  "macro_f1": 0.9534,
+  "roc_auc": 0.9956,
+  "per_class": {
+    "flea": {
+      "precision": 0.9197,
+      "recall": 0.9539,
+      "f1_score": 0.9365,
+      "support": 456
+    },
+    "healthy": {
+      "precision": 0.9765,
+      "recall": 0.9788,
+      "f1_score": 0.9776,
+      "support": 424
+    },
+    "ringworm": {
+      "precision": 0.9193,
+      "recall": 0.9031,
+      "f1_score": 0.9111,
+      "support": 454
+    },
+    "scabies": {
+      "precision": 1.0,
+      "recall": 0.9771,
+      "f1_score": 0.9884,
+      "support": 437
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "flea",
+      "healthy",
+      "ringworm",
+      "scabies"
+    ],
+    "matrix": [
+      [
+        435,
+        0,
+        21,
+        0
+      ],
+      [
+        2,
+        415,
+        7,
+        0
+      ],
+      [
+        36,
+        8,
+        410,
+        0
+      ],
+      [
+        0,
+        2,
+        8,
+        427
+      ]
+    ]
+  },
+  "misclassified_count": 84,
+  "total_val_samples": 1771,
+  "best_model": "mobilenetv2",
+  "epochs": 25,
+  "dataset_split": "80% Train / 20% Validation",
+  "comparison": {
+    "resnet18": {
+      "overall_accuracy": 0.9085,
+      "macro_precision": 0.9219,
+      "macro_recall": 0.9085,
+      "macro_f1": 0.9117,
+      "roc_auc": 0.9909,
+      "per_class": {
+        "flea": {
+          "precision": 0.954,
+          "recall": 0.864,
+          "f1_score": 0.9068,
+          "support": 456
+        },
+        "healthy": {
+          "precision": 0.9718,
+          "recall": 0.8939,
+          "f1_score": 0.9312,
+          "support": 424
+        },
+        "ringworm": {
+          "precision": 0.7692,
+          "recall": 0.9471,
+          "f1_score": 0.849,
+          "support": 454
+        },
+        "scabies": {
+          "precision": 0.9927,
+          "recall": 0.9291,
+          "f1_score": 0.9598,
+          "support": 437
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "flea",
+          "healthy",
+          "ringworm",
+          "scabies"
+        ],
+        "matrix": [
+          [
+            394,
+            0,
+            62,
+            0
+          ],
+          [
+            1,
+            379,
+            41,
+            3
+          ],
+          [
+            18,
+            6,
+            430,
+            0
+          ],
+          [
+            0,
+            5,
+            26,
+            406
+          ]
+        ]
+      },
+      "misclassified_count": 162,
+      "total_val_samples": 1771
+    },
+    "resnet50": {
+      "overall_accuracy": 0.8967,
+      "macro_precision": 0.899,
+      "macro_recall": 0.8974,
+      "macro_f1": 0.8981,
+      "roc_auc": 0.9841,
+      "per_class": {
+        "flea": {
+          "precision": 0.8803,
+          "recall": 0.9035,
+          "f1_score": 0.8918,
+          "support": 456
+        },
+        "healthy": {
+          "precision": 0.9354,
+          "recall": 0.9222,
+          "f1_score": 0.9287,
+          "support": 424
+        },
+        "ringworm": {
+          "precision": 0.8156,
+          "recall": 0.8282,
+          "f1_score": 0.8219,
+          "support": 454
+        },
+        "scabies": {
+          "precision": 0.9646,
+          "recall": 0.9359,
+          "f1_score": 0.9501,
+          "support": 437
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "flea",
+          "healthy",
+          "ringworm",
+          "scabies"
+        ],
+        "matrix": [
+          [
+            412,
+            2,
+            40,
+            2
+          ],
+          [
+            1,
+            391,
+            25,
+            7
+          ],
+          [
+            54,
+            18,
+            376,
+            6
+          ],
+          [
+            1,
+            7,
+            20,
+            409
+          ]
+        ]
+      },
+      "misclassified_count": 183,
+      "total_val_samples": 1771
+    },
+    "mobilenetv2": {
+      "overall_accuracy": 0.9526,
+      "macro_precision": 0.9539,
+      "macro_recall": 0.9532,
+      "macro_f1": 0.9534,
+      "roc_auc": 0.9956,
+      "per_class": {
+        "flea": {
+          "precision": 0.9197,
+          "recall": 0.9539,
+          "f1_score": 0.9365,
+          "support": 456
+        },
+        "healthy": {
+          "precision": 0.9765,
+          "recall": 0.9788,
+          "f1_score": 0.9776,
+          "support": 424
+        },
+        "ringworm": {
+          "precision": 0.9193,
+          "recall": 0.9031,
+          "f1_score": 0.9111,
+          "support": 454
+        },
+        "scabies": {
+          "precision": 1.0,
+          "recall": 0.9771,
+          "f1_score": 0.9884,
+          "support": 437
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "flea",
+          "healthy",
+          "ringworm",
+          "scabies"
+        ],
+        "matrix": [
+          [
+            435,
+            0,
+            21,
+            0
+          ],
+          [
+            2,
+            415,
+            7,
+            0
+          ],
+          [
+            36,
+            8,
+            410,
+            0
+          ],
+          [
+            0,
+            2,
+            8,
+            427
+          ]
+        ]
+      },
+      "misclassified_count": 84,
+      "total_val_samples": 1771
+    }
+  }
+}

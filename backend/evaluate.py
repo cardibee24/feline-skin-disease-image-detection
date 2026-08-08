@@ -5,15 +5,13 @@ from sklearn.metrics import classification_report, roc_auc_score, confusion_matr
 import numpy as np
 import json
 import os
+import argparse
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from clahe_transform import CLAHETransform
 
-MODELS = {
-    'resnet18':    'resnet18.pth',
-    'resnet50':    'resnet50.pth',
-    'mobilenetv2': 'mobilenetv2.pth',
-}
+ARCHS = ['resnet18', 'resnet50', 'mobilenetv2']
 
 EVAL_OUTPUT_DIR = 'evaluation_results'
 
@@ -29,7 +27,7 @@ def build_model(model_name, num_classes):
         m.classifier[1] = nn.Linear(m.last_channel, num_classes)
     return m
 
-def save_confusion_matrix_image(cm, class_names, model_name):
+def save_confusion_matrix_image(cm, class_names, file_tag):
     n = len(class_names)
     fig, ax = plt.subplots(figsize=(max(6, n), max(5, n - 1)))
     im = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
@@ -49,15 +47,16 @@ def save_confusion_matrix_image(cm, class_names, model_name):
 
     ax.set_ylabel('True Label', fontsize=11)
     ax.set_xlabel('Predicted Label', fontsize=11)
-    ax.set_title(f'Confusion Matrix — {model_name.upper()}', fontsize=13, pad=12)
+    ax.set_title(f'Confusion Matrix — {file_tag.upper()}', fontsize=13, pad=12)
     plt.tight_layout()
 
-    path = os.path.join(EVAL_OUTPUT_DIR, f'confusion_matrix_{model_name}.png')
+    path = os.path.join(EVAL_OUTPUT_DIR, f'confusion_matrix_{file_tag}.png')
     fig.savefig(path, dpi=150, bbox_inches='tight')
     plt.close(fig)
     print(f"  Confusion matrix image saved to {path}")
 
-def evaluate_single(model_name, model_path, val_loader, val_dataset, class_names, device):
+def evaluate_single(model_name, model_path, val_loader, val_dataset, class_names, device, file_tag=None):
+    file_tag = file_tag or model_name
     print(f"\nEvaluating {model_name.upper()} from {model_path} ...")
     model = build_model(model_name, len(class_names))
     model.load_state_dict(torch.load(model_path, map_location=device))
@@ -92,7 +91,7 @@ def evaluate_single(model_name, model_path, val_loader, val_dataset, class_names
 
     # Confusion matrix — rows=true label, cols=predicted label
     cm = confusion_matrix(all_labels, all_preds)
-    save_confusion_matrix_image(cm, class_names, model_name)
+    save_confusion_matrix_image(cm, class_names, file_tag)
     cm_data = {
         "labels": class_names,
         "matrix": cm.tolist(),
@@ -110,7 +109,7 @@ def evaluate_single(model_name, model_path, val_loader, val_dataset, class_names
                 "confidence":      round(float(all_probs[i][all_preds[i]]), 4),
             })
 
-    misclassified_path = os.path.join(EVAL_OUTPUT_DIR, f'misclassified_{model_name}.json')
+    misclassified_path = os.path.join(EVAL_OUTPUT_DIR, f'misclassified_{file_tag}.json')
     with open(misclassified_path, 'w') as f:
         json.dump(misclassified, f, indent=2)
     print(f"  Misclassified: {len(misclassified)}/{len(all_labels)} saved to {misclassified_path}")
@@ -147,13 +146,14 @@ def evaluate_single(model_name, model_path, val_loader, val_dataset, class_names
 
     return result
 
-def evaluate_all(data_dir='dataset', class_names_path='class_names.txt'):
+def evaluate_all(data_dir='dataset', class_names_path='class_names.txt', use_clahe=False):
     os.makedirs(EVAL_OUTPUT_DIR, exist_ok=True)
 
     with open(class_names_path, 'r') as f:
         class_names = [line.strip() for line in f.readlines()]
 
-    val_transform = transforms.Compose([
+    clahe_step = [CLAHETransform()] if use_clahe else []
+    val_transform = transforms.Compose(clahe_step + [
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
@@ -164,6 +164,9 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt'):
     val_loader  = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
     device      = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+    suffix = '_clahe' if use_clahe else ''
+    MODELS = {arch: f'{arch}{suffix}.pth' for arch in ARCHS}
+
     comparison = {}
     best_model = None
     best_f1    = -1
@@ -172,7 +175,8 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt'):
         if not os.path.exists(model_path):
             print(f"Skipping {model_name} — {model_path} not found.")
             continue
-        result = evaluate_single(model_name, model_path, val_loader, val_dataset, class_names, device)
+        result = evaluate_single(model_name, model_path, val_loader, val_dataset, class_names, device,
+                                  file_tag=f'{model_name}{suffix}')
         comparison[model_name] = result
         if result["macro_f1"] > best_f1:
             best_f1    = result["macro_f1"]
@@ -199,13 +203,18 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt'):
         "comparison":          comparison,
     }
 
-    with open('metrics.json', 'w') as f:
+    metrics_path = f'metrics{suffix}.json'
+    with open(metrics_path, 'w') as f:
         json.dump(metrics, f, indent=2)
 
     print(f"\n{'='*40}")
     print(f"Best model: {best_model.upper()} (Macro F1: {best_f1:.4f})")
-    print(f"Metrics saved to metrics.json")
+    print(f"Metrics saved to {metrics_path}")
     print(f"{'='*40}")
 
 if __name__ == '__main__':
-    evaluate_all()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--clahe', action='store_true',
+                        help='Evaluate the CLAHE-trained models (*_clahe.pth) with matching CLAHE preprocessing, writing metrics_clahe.json')
+    args = parser.parse_args()
+    evaluate_all(use_clahe=args.clahe)
