@@ -41,10 +41,18 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 BLOCKED_IMAGENET_INDICES = set(range(151, 269)) | set(range(286, 294))
 gate_model = None
 
+# Stage-2 flea/ringworm specialist: fires only when stage-1's top-2 predicted
+# classes are exactly {flea, ringworm}, the pair the 4-class model confuses most.
+STAGE2_PAIR = {'flea', 'ringworm'}
+STAGE2_MODEL_FILE = 'mobilenetv2_stage2_flea_ringworm.pth'
+STAGE2_CLASS_NAMES_FILE = 'stage2_class_names.txt'
+stage2_model = None
+stage2_class_names = []
+
 MODEL_FILES = {
-    'resnet18':    'resnet18.pth',
-    'resnet50':    'resnet50.pth',
-    'mobilenetv2': 'mobilenetv2.pth',
+    'resnet18':    'resnet18_clahe.pth',
+    'resnet50':    'resnet50_clahe.pth',
+    'mobilenetv2': 'mobilenetv2_clahe.pth',
 }
 
 def load_gate_model():
@@ -58,6 +66,23 @@ def load_gate_model():
         print("Gate-keeper model (ImageNet MobileNetV2) loaded.")
     except Exception as e:
         print(f"Gate-keeper model failed to load: {e}")
+
+def load_stage2_model():
+    global stage2_model, stage2_class_names
+    try:
+        if os.path.exists(STAGE2_MODEL_FILE) and os.path.exists(STAGE2_CLASS_NAMES_FILE):
+            with open(STAGE2_CLASS_NAMES_FILE, 'r') as f:
+                stage2_class_names = [line.strip() for line in f.readlines()]
+            m = build_model('mobilenetv2', len(stage2_class_names))
+            m.load_state_dict(torch.load(STAGE2_MODEL_FILE, map_location=device))
+            m.to(device)
+            m.eval()
+            stage2_model = m
+            print(f"Stage-2 flea/ringworm specialist loaded: {stage2_class_names}")
+        else:
+            print("Stage-2 model files not found. Running without flea/ringworm specialist.")
+    except Exception as e:
+        print(f"Stage-2 model failed to load: {e}")
 
 def is_feline_image(pil_image, block_threshold=0.50):
     """Return False only when top-1 ImageNet class is a wild cat or dog with >= block_threshold confidence.
@@ -161,6 +186,7 @@ if model_loaded:
 else:
     print("WARNING: Server initialized in MOCK MODE")
 load_gate_model()
+load_stage2_model()
 
 def apply_clahe(pil_image):
     """Apply CLAHE to the L channel of the image in LAB colour space."""
@@ -336,10 +362,33 @@ async def predict(file: UploadFile = File(...)):
         ]
         all_probs.sort(key=lambda x: x["confidence"], reverse=True)
 
+        # --- Stage 2: flea/ringworm specialist ---
+        # Fires only when stage-1 is genuinely torn between flea and ringworm
+        # (its two most-confused classes), and redistributes their combined
+        # probability mass according to the specialist's binary verdict.
+        stage2_applied = False
+        target_class_idx = top_catid.item()
+        if stage2_model is not None and {all_probs[0]["label"], all_probs[1]["label"]} == STAGE2_PAIR:
+            with torch.no_grad():
+                stage2_probs = torch.nn.functional.softmax(stage2_model(inputs), dim=1)[0]
+            s2_lookup = {stage2_class_names[i]: stage2_probs[i].item() for i in range(len(stage2_class_names))}
+
+            combined_mass = sum(e["confidence"] for e in all_probs if e["label"] in STAGE2_PAIR)
+            denom = max(s2_lookup["flea"] + s2_lookup["ringworm"], 1e-8)
+            for entry in all_probs:
+                if entry["label"] in STAGE2_PAIR:
+                    entry["confidence"] = combined_mass * (s2_lookup[entry["label"]] / denom)
+            all_probs.sort(key=lambda x: x["confidence"], reverse=True)
+
+            label = all_probs[0]["label"]
+            confidence = all_probs[0]["confidence"]
+            target_class_idx = class_names.index(label)
+            stage2_applied = True
+
         # Compute Grad-CAM heatmap
         gradcam_base64 = None
         try:
-            cam = compute_gradcam(inputs, top_catid.item())
+            cam = compute_gradcam(inputs, target_class_idx)
             gradcam_base64 = overlay_heatmap(image, cam)
         except Exception as e:
             print(f"Grad-CAM failed: {e}")
@@ -351,6 +400,7 @@ async def predict(file: UploadFile = File(...)):
             "all_probabilities": all_probs,
             "gradcam_image": gradcam_base64,
             "mode": "real_model",
+            "stage2_applied": stage2_applied,
         }
     else:
         # Mock Inference
