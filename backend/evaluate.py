@@ -165,7 +165,10 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt', use_cla
     device      = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     suffix = '_clahe' if use_clahe else ''
-    MODELS = {arch: f'{arch}{suffix}.pth' for arch in ARCHS}
+    # Non-CLAHE checkpoints live in archive/ (kept only for before/after comparison);
+    # CLAHE checkpoints are the production models and stay in the backend root.
+    base_dir = '' if use_clahe else 'archive/'
+    MODELS = {arch: f'{base_dir}{arch}{suffix}.pth' for arch in ARCHS}
 
     comparison = {}
     best_model = None
@@ -203,7 +206,9 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt', use_cla
         "comparison":          comparison,
     }
 
-    metrics_path = f'metrics{suffix}.json'
+    # metrics.json is read live by main.py and must stay in the backend root;
+    # metrics_clahe.json is comparison-only output, so it goes with the other eval results.
+    metrics_path = 'metrics.json' if not use_clahe else os.path.join(EVAL_OUTPUT_DIR, 'metrics_clahe.json')
     with open(metrics_path, 'w') as f:
         json.dump(metrics, f, indent=2)
 

@@ -1,8 +1,7 @@
 # Dataset and model files (too large for GitHub)
 raw_data/
 dataset/
-model.pth
-class_names.txt
+*.pth
 
 # Python
 __pycache__/

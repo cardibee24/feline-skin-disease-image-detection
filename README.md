@@ -40,14 +40,25 @@ An AI-powered web application that detects feline skin diseases from images usin
 ```
 feline-skin-disease-image-detection/
 ├── backend/
-│   ├── main.py              # FastAPI server + inference + Grad-CAM
-│   ├── train.py             # Model training script
-│   ├── evaluate.py          # Evaluation script (generates metrics.json)
-│   ├── prepare_dataset.py   # Train/val split from raw_data/
+│   ├── main.py                # FastAPI server + inference + Grad-CAM
+│   ├── train.py                # Stage-1 (4-class) training script
+│   ├── train_stage2.py         # Stage-2 flea/ringworm specialist training script
+│   ├── evaluate.py             # Stage-1 evaluation (generates metrics.json / metrics_clahe.json)
+│   ├── evaluate_stage2.py      # Stage-2 evaluation
+│   ├── prepare_dataset.py      # Train/val split from raw_data/
+│   ├── clahe_transform.py      # CLAHE preprocessing transform
+│   ├── stage2_dataset.py       # Flea/ringworm binary subset dataset
 │   ├── requirements.txt
-│   ├── model.pth            # Trained model weights (not in repo)
-│   ├── class_names.txt      # Class labels (not in repo)
-│   └── metrics.json         # Evaluation metrics (not in repo)
+│   ├── class_names.txt         # Stage-1 class labels
+│   ├── stage2_class_names.txt  # Stage-2 class labels
+│   ├── metrics.json            # Live metrics read by main.py at startup
+│   ├── resnet18_clahe.pth, resnet50_clahe.pth,
+│   │   mobilenetv2_clahe.pth   # Production model weights (not in repo — gitignored)
+│   ├── mobilenetv2_stage2_flea_ringworm.pth  # Stage-2 specialist weights (not in repo)
+│   ├── dataset/                 # Train/val image split (not in repo — gitignored)
+│   ├── raw_data/                # Source images before splitting (not in repo — gitignored)
+│   ├── evaluation_results/      # Confusion matrices, misclassified lists, comparison metrics
+│   └── archive/                 # Superseded models kept for reference (not in repo)
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx

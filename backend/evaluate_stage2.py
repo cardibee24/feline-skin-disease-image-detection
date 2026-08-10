@@ -35,9 +35,10 @@ def evaluate_binary_sanity(data_dir, device):
     result = evaluate_single('mobilenetv2', STAGE2_MODEL_PATH, val_loader, binary_val,
                               list(binary_val.classes), device, file_tag='stage2_binary')
 
-    with open('metrics_stage2_binary.json', 'w') as f:
+    binary_metrics_path = os.path.join(EVAL_OUTPUT_DIR, 'metrics_stage2_binary.json')
+    with open(binary_metrics_path, 'w') as f:
         json.dump(result, f, indent=2)
-    print("Saved metrics_stage2_binary.json")
+    print(f"Saved {binary_metrics_path}")
     return result
 
 
@@ -167,7 +168,7 @@ def evaluate_pipeline(data_dir, device):
         "trigger_correct_after": trigger_correct_after,
     }
 
-    baseline_path = 'metrics_clahe.json'
+    baseline_path = os.path.join(EVAL_OUTPUT_DIR, 'metrics_clahe.json')
     if os.path.exists(baseline_path):
         with open(baseline_path, 'r') as f:
             baseline = json.load(f)
@@ -179,14 +180,15 @@ def evaluate_pipeline(data_dir, device):
             },
         }
 
-    with open('metrics_stage2_pipeline.json', 'w') as f:
+    pipeline_metrics_path = os.path.join(EVAL_OUTPUT_DIR, 'metrics_stage2_pipeline.json')
+    with open(pipeline_metrics_path, 'w') as f:
         json.dump(result, f, indent=2)
 
     print(f"\n{'='*40}")
     print(f"Two-stage pipeline accuracy: {accuracy*100:.2f}%")
     print(f"Trigger count: {trigger_count} / {len(all_labels)}")
     print(f"Trigger correct before stage-2: {trigger_correct_before}  after: {trigger_correct_after}")
-    print(f"Saved metrics_stage2_pipeline.json")
+    print(f"Saved {pipeline_metrics_path}")
     print(f"{'='*40}")
 
     return result
