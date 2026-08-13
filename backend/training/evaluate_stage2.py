@@ -9,10 +9,10 @@ from stage2_dataset import BinarySubsetDataset
 from evaluate import build_model, evaluate_single, save_confusion_matrix_image, EVAL_OUTPUT_DIR
 
 STAGE1_ARCH = 'mobilenetv2'
-STAGE1_MODEL_PATH = 'mobilenetv2_clahe.pth'
-STAGE2_MODEL_PATH = 'mobilenetv2_stage2_flea_ringworm.pth'
-STAGE2_CLASS_NAMES_PATH = 'stage2_class_names.txt'
-CLASS_NAMES_PATH = 'class_names.txt'
+STAGE1_MODEL_PATH = 'models/mobilenetv2_clahe.pth'
+STAGE2_MODEL_PATH = 'models/mobilenetv2_stage2_flea_ringworm.pth'
+STAGE2_CLASS_NAMES_PATH = 'models/stage2_class_names.txt'
+CLASS_NAMES_PATH = 'models/class_names.txt'
 
 
 def build_val_transform():

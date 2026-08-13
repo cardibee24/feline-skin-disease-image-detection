@@ -44,15 +44,15 @@ gate_model = None
 # Stage-2 flea/ringworm specialist: fires only when stage-1's top-2 predicted
 # classes are exactly {flea, ringworm}, the pair the 4-class model confuses most.
 STAGE2_PAIR = {'flea', 'ringworm'}
-STAGE2_MODEL_FILE = 'mobilenetv2_stage2_flea_ringworm.pth'
-STAGE2_CLASS_NAMES_FILE = 'stage2_class_names.txt'
+STAGE2_MODEL_FILE = 'models/mobilenetv2_stage2_flea_ringworm.pth'
+STAGE2_CLASS_NAMES_FILE = 'models/stage2_class_names.txt'
 stage2_model = None
 stage2_class_names = []
 
 MODEL_FILES = {
-    'resnet18':    'resnet18_clahe.pth',
-    'resnet50':    'resnet50_clahe.pth',
-    'mobilenetv2': 'mobilenetv2_clahe.pth',
+    'resnet18':    'models/resnet18_clahe.pth',
+    'resnet50':    'models/resnet50_clahe.pth',
+    'mobilenetv2': 'models/mobilenetv2_clahe.pth',
 }
 
 def load_gate_model():
@@ -136,9 +136,9 @@ def get_target_layers(arch):
 
 def pick_best_model():
     """Read metrics.json to find the best model, fallback to first available .pth."""
-    if os.path.exists('metrics.json'):
+    if os.path.exists('models/metrics.json'):
         try:
-            with open('metrics.json', 'r') as f:
+            with open('models/metrics.json', 'r') as f:
                 data = json.load(f)
             best = data.get('best_model')
             if best and os.path.exists(MODEL_FILES.get(best, '')):
@@ -155,7 +155,7 @@ def pick_best_model():
 
 def load_model():
     global model, model_arch, class_names
-    class_names_path = "class_names.txt"
+    class_names_path = "models/class_names.txt"
 
     arch, model_path = pick_best_model()
 
@@ -317,11 +317,11 @@ def read_root():
 
 @app.get("/metrics")
 def get_metrics():
-    metrics_path = "metrics.json"
+    metrics_path = "models/metrics.json"
     if os.path.exists(metrics_path):
         with open(metrics_path, 'r') as f:
             return json.load(f)
-    return {"error": "Metrics not found. Run evaluate.py first."}
+    return {"error": "Metrics not found. Run training/evaluate.py first."}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):

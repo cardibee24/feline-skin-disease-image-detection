@@ -40,25 +40,27 @@ An AI-powered web application that detects feline skin diseases from images usin
 ```
 feline-skin-disease-image-detection/
 ├── backend/
-│   ├── main.py                # FastAPI server + inference + Grad-CAM
-│   ├── train.py                # Stage-1 (4-class) training script
-│   ├── train_stage2.py         # Stage-2 flea/ringworm specialist training script
-│   ├── evaluate.py             # Stage-1 evaluation (generates metrics.json / metrics_clahe.json)
-│   ├── evaluate_stage2.py      # Stage-2 evaluation
-│   ├── prepare_dataset.py      # Train/val split from raw_data/
-│   ├── clahe_transform.py      # CLAHE preprocessing transform
-│   ├── stage2_dataset.py       # Flea/ringworm binary subset dataset
+│   ├── main.py                # FastAPI server + inference + Grad-CAM (the only thing that runs in production)
 │   ├── requirements.txt
-│   ├── class_names.txt         # Stage-1 class labels
-│   ├── stage2_class_names.txt  # Stage-2 class labels
-│   ├── metrics.json            # Live metrics read by main.py at startup
-│   ├── resnet18_clahe.pth, resnet50_clahe.pth,
-│   │   mobilenetv2_clahe.pth   # Production model weights (not in repo — gitignored)
-│   ├── mobilenetv2_stage2_flea_ringworm.pth  # Stage-2 specialist weights (not in repo)
+│   ├── training/                # Offline pipeline: prepare data, train, evaluate
+│   │   ├── train.py                 # Stage-1 (4-class) training script
+│   │   ├── train_stage2.py          # Stage-2 flea/ringworm specialist training script
+│   │   ├── evaluate.py              # Stage-1 evaluation (writes models/metrics.json / evaluation_results/metrics_clahe.json)
+│   │   ├── evaluate_stage2.py       # Stage-2 evaluation
+│   │   ├── prepare_dataset.py       # Train/val split from raw_data/
+│   │   ├── clahe_transform.py       # CLAHE preprocessing transform
+│   │   └── stage2_dataset.py        # Flea/ringworm binary subset dataset
+│   ├── models/                  # Everything main.py loads at startup
+│   │   ├── class_names.txt          # Stage-1 class labels
+│   │   ├── stage2_class_names.txt   # Stage-2 class labels
+│   │   ├── metrics.json             # Live metrics, picks the best model to serve
+│   │   ├── resnet18_clahe.pth, resnet50_clahe.pth,
+│   │   │   mobilenetv2_clahe.pth    # Production weights (not in repo — gitignored)
+│   │   └── mobilenetv2_stage2_flea_ringworm.pth  # Stage-2 specialist weights (not in repo)
 │   ├── dataset/                 # Train/val image split (not in repo — gitignored)
 │   ├── raw_data/                # Source images before splitting (not in repo — gitignored)
 │   ├── evaluation_results/      # Confusion matrices, misclassified lists, comparison metrics
-│   └── archive/                 # Superseded models kept for reference (not in repo)
+│   └── archive/                 # Superseded/non-CLAHE comparison models (not in repo)
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
@@ -94,17 +96,17 @@ pip install -r requirements.txt
 
 **Prepare dataset** (place raw images in `raw_data/<class>/` first):
 ```bash
-python prepare_dataset.py --source raw_data --output dataset
+python training/prepare_dataset.py --source raw_data --output dataset
 ```
 
-**Train the model:**
+**Train the model** (`--clahe` produces the weights main.py actually serves, saved to `models/`):
 ```bash
-python train.py
+python training/train.py --clahe
 ```
 
-**Generate evaluation metrics:**
+**Generate evaluation metrics** (writes `models/metrics.json`, which main.py reads at startup):
 ```bash
-python evaluate.py
+python training/evaluate.py --clahe
 ```
 
 **Start the server:**
@@ -156,13 +158,13 @@ cd backend
 pip install -r requirements.txt
 
 # 2. Prepare dataset (raw images must be in raw_data/<class>/)
-python prepare_dataset.py --source raw_data --output dataset
+python training/prepare_dataset.py --source raw_data --output dataset
 
-# 3. Train the model — generates model.pth
-python train.py
+# 3. Train the model — generates models/*_clahe.pth
+python training/train.py --clahe
 
-# 4. Generate performance metrics — generates metrics.json
-python evaluate.py
+# 4. Generate performance metrics — generates models/metrics.json
+python training/evaluate.py --clahe
 
 # 5. Start the backend
 python main.py

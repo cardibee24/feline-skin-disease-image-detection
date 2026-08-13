@@ -146,7 +146,7 @@ def evaluate_single(model_name, model_path, val_loader, val_dataset, class_names
 
     return result
 
-def evaluate_all(data_dir='dataset', class_names_path='class_names.txt', use_clahe=False):
+def evaluate_all(data_dir='dataset', class_names_path='models/class_names.txt', use_clahe=False):
     os.makedirs(EVAL_OUTPUT_DIR, exist_ok=True)
 
     with open(class_names_path, 'r') as f:
@@ -166,8 +166,8 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt', use_cla
 
     suffix = '_clahe' if use_clahe else ''
     # Non-CLAHE checkpoints live in archive/ (kept only for before/after comparison);
-    # CLAHE checkpoints are the production models and stay in the backend root.
-    base_dir = '' if use_clahe else 'archive/'
+    # CLAHE checkpoints are the production models and live in models/.
+    base_dir = 'models/' if use_clahe else 'archive/'
     MODELS = {arch: f'{base_dir}{arch}{suffix}.pth' for arch in ARCHS}
 
     comparison = {}
@@ -206,9 +206,9 @@ def evaluate_all(data_dir='dataset', class_names_path='class_names.txt', use_cla
         "comparison":          comparison,
     }
 
-    # metrics.json is read live by main.py and must stay in the backend root;
+    # metrics.json is read live by main.py and lives alongside the models it describes;
     # metrics_clahe.json is comparison-only output, so it goes with the other eval results.
-    metrics_path = 'metrics.json' if not use_clahe else os.path.join(EVAL_OUTPUT_DIR, 'metrics_clahe.json')
+    metrics_path = 'models/metrics.json' if not use_clahe else os.path.join(EVAL_OUTPUT_DIR, 'metrics_clahe.json')
     with open(metrics_path, 'w') as f:
         json.dump(metrics, f, indent=2)
 

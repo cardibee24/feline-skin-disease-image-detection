@@ -110,20 +110,21 @@ def train_stage2(data_dir='dataset', num_epochs=20, batch_size=32, learning_rate
     print(f'Best val Acc (stage-2 flea/ringworm): {best_acc:.4f}')
     model.load_state_dict(best_model_wts)
 
-    save_path = 'mobilenetv2_stage2_flea_ringworm.pth'
+    os.makedirs('models', exist_ok=True)
+    save_path = 'models/mobilenetv2_stage2_flea_ringworm.pth'
     torch.save(model.state_dict(), save_path)
     print(f"Model saved to {save_path}")
 
-    with open('stage2_class_names.txt', 'w') as f:
+    with open('models/stage2_class_names.txt', 'w') as f:
         for c in STAGE2_CLASSES:
             f.write(c + '\n')
-    print("Class names saved to stage2_class_names.txt\n")
+    print("Class names saved to models/stage2_class_names.txt\n")
 
 
 if __name__ == '__main__':
     if not os.path.exists('dataset/train') or not os.path.exists('dataset/val'):
         print("Error: dataset/train or dataset/val not found.")
-        print("Run: python prepare_dataset.py --source raw_data --output dataset")
+        print("Run: python training/prepare_dataset.py --source raw_data --output dataset")
         exit(1)
 
     parser = argparse.ArgumentParser()

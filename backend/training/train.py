@@ -122,19 +122,24 @@ def train_model(model_name='resnet18', data_dir='dataset', num_epochs=25, batch_
     model.load_state_dict(best_model_wts)
 
     suffix = '_clahe' if use_clahe else ''
-    save_path = f'{model_name}{suffix}.pth'
+    # CLAHE models are production (served by main.py) and live in models/;
+    # non-CLAHE models are comparison-only and live in archive/.
+    save_dir = 'models' if use_clahe else 'archive'
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, f'{model_name}{suffix}.pth')
     torch.save(model.state_dict(), save_path)
     print(f"Model saved to {save_path}\n")
 
     # Save class names (same for all models)
-    with open('class_names.txt', 'w') as f:
+    os.makedirs('models', exist_ok=True)
+    with open('models/class_names.txt', 'w') as f:
         for c in class_names:
             f.write(c + '\n')
 
 if __name__ == '__main__':
     if not os.path.exists('dataset/train') or not os.path.exists('dataset/val'):
         print("Error: dataset/train or dataset/val not found.")
-        print("Run: python prepare_dataset.py --source raw_data --output dataset")
+        print("Run: python training/prepare_dataset.py --source raw_data --output dataset")
         exit(1)
 
     parser = argparse.ArgumentParser()
